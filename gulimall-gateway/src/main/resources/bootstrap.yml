@@ -27,6 +27,12 @@ spring:
             - Path=/api/product/**
           filters:
             - StripPrefix=1
+        - id: thirdparty_route
+          uri: lb://gulimall-thirdparty
+          predicates:
+            - Path=/api/thirdparty/**
+          filters:
+            - StripPrefix=1
         - id: admin_route
           uri: lb://renren-fast
           predicates:

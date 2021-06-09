@@ -1,4 +1,5 @@
 import com.aliyun.oss.OSSClient;
+import com.dzy.gulimall.thirdparty.GulimallThirdpartyMain;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -6,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
-@SpringBootTest(classes = {com.dzy.gulimall.GulimallThirdpartyMain.class})
+@SpringBootTest(classes = {com.dzy.gulimall.thirdparty.GulimallThirdpartyMain.class})
 public class MyTest {
 
     @Autowired
