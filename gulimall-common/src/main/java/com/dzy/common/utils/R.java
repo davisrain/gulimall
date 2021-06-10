@@ -8,6 +8,7 @@
 
 package com.dzy.common.utils;
 
+import com.dzy.common.exception.BizCodeEnum;
 import org.apache.http.HttpStatus;
 
 import java.util.HashMap;
@@ -38,6 +39,12 @@ public class R extends HashMap<String, Object> {
 		R r = new R();
 		r.put("code", code);
 		r.put("msg", msg);
+		return r;
+	}
+	public static R error(BizCodeEnum error) {
+		R r = new R();
+		r.put("code", error.getCode());
+		r.put("msg", error.getMsg());
 		return r;
 	}
 

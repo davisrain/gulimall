@@ -25,13 +25,10 @@ public class OssController {
 
     @Autowired
     OSS ossClient;
-
     @Value("${alibaba.cloud.oss.endpoint}")
     String endpoint;
-
     @Value("${alibaba.cloud.oss.bucket}")
     String bucket;
-
     @Value("${alibaba.cloud.access-key}")
     String accessId;
 
@@ -65,14 +62,6 @@ public class OssController {
             respMap.put("host", host);
             respMap.put("expire", String.valueOf(expireEndTime / 1000));
             // respMap.put("expire", formatISO8601Date(expiration));
-
-            JSONObject jasonCallback = new JSONObject();
-            jasonCallback.put("callbackUrl", callbackUrl);
-            jasonCallback.put("callbackBody",
-                    "filename=${object}&size=${size}&mimeType=${mimeType}&height=${imageInfo.height}&width=${imageInfo.width}");
-            jasonCallback.put("callbackBodyType", "application/x-www-form-urlencoded");
-            String base64CallbackBody = BinaryUtil.toBase64String(jasonCallback.toString().getBytes());
-            respMap.put("callback", base64CallbackBody);
         } catch (Exception e) {
             // Assert.fail(e.getMessage());
             System.out.println(e.getMessage());
