@@ -1,5 +1,6 @@
 package com.dzy.gulimall.product.service.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -23,6 +24,35 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
                 new QueryWrapper<AttrGroupEntity>()
         );
 
+        return new PageUtils(page);
+    }
+
+    @Override
+    public PageUtils queryPage(Map<String, Object> params, Long categoryId) {
+        IPage<AttrGroupEntity> page;
+        String key = (String) params.get("key");
+        if(categoryId == 0) {
+            if(StringUtils.isNotEmpty(key)) {
+                page = this.page(new Query<AttrGroupEntity>().getPage(params),
+                        new QueryWrapper<AttrGroupEntity>().and(obj -> {
+                                    obj.eq("attr_group_id", key).or().like("attr_group_name", key);
+                                }));
+            } else {
+                page = this.page(new Query<AttrGroupEntity>().getPage(params),
+                        new QueryWrapper<AttrGroupEntity>());
+            }
+        } else {
+            if(StringUtils.isNotEmpty(key)) {
+                page = this.page(new Query<AttrGroupEntity>().getPage(params),
+                        new QueryWrapper<AttrGroupEntity>().eq("catelog_id", categoryId)
+                .and(obj -> {
+                    obj.eq("attr_group_id", key).or().like("attr_group_name", key);
+                }));
+            } else {
+                page = this.page(new Query<AttrGroupEntity>().getPage(params),
+                        new QueryWrapper<AttrGroupEntity>().eq("catelog_id", categoryId));
+            }
+        }
         return new PageUtils(page);
     }
 

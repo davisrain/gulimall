@@ -23,3 +23,6 @@ mybatis-plus:
       logic-delete-value: 1     #有默认值为1
       logic-not-delete-value: 0  #有默认值为0
 
+logging:
+  level:
+    com.dzy.gulimall: debug
