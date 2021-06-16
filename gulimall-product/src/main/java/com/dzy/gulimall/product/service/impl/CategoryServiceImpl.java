@@ -2,6 +2,8 @@ package com.dzy.gulimall.product.service.impl;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,6 +50,22 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public int removeCategoriesByIds(List<Long> catIds) {
         //TODO 检查当前删除的分类，是否被别的地方引用
         return baseMapper.deleteBatchIds(catIds);
+    }
+
+    @Override
+    public Long[] getCatelogPath(Long catelogId) {
+        List<Long> list = new ArrayList<>();
+        catelogPath(catelogId, list);
+        Collections.reverse(list);
+        return list.toArray(new Long[0]);
+    }
+
+    private void catelogPath(Long catelogId, List<Long> list) {
+        list.add(catelogId);
+        CategoryEntity category = this.getById(catelogId);
+        if(category.getParentCid() != 0) {
+            catelogPath(category.getParentCid(), list);
+        }
     }
 
     private List<CategoryEntity> getSubCategories(CategoryEntity root, List<CategoryEntity> all) {
