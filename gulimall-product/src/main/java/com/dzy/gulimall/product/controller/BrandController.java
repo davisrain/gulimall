@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.dzy.common.valid.AddGroup;
 import com.dzy.common.valid.UpdateGroup;
+import org.apache.commons.lang.StringUtils;
 import org.junit.jupiter.params.shadow.com.univocity.parsers.annotations.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
@@ -76,7 +77,7 @@ public class BrandController {
     @RequestMapping("/update")
     //@RequiresPermissions("product:brand:update")
     public R update(@Validated(UpdateGroup.class) @RequestBody BrandEntity brand){
-		brandService.updateById(brand);
+		brandService.updateDetail(brand);
 
         return R.ok();
     }
