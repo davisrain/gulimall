@@ -1,11 +1,17 @@
 package com.dzy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.dzy.gulimall.product.entity.AttrEntity;
+import com.dzy.gulimall.product.service.AttrService;
 import com.dzy.gulimall.product.service.CategoryService;
+import com.dzy.gulimall.product.vo.AttrAttrgroupRelationVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,6 +39,9 @@ public class AttrGroupController {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private AttrService attrService;
     /**
      * 列表
      */
@@ -86,6 +95,32 @@ public class AttrGroupController {
     public R delete(@RequestBody Long[] attrGroupIds){
 		attrGroupService.removeByIds(Arrays.asList(attrGroupIds));
 
+        return R.ok();
+    }
+
+    /**
+     *  获取属性分组的关联的所有属性
+     */
+    @GetMapping("/{attrGroupId}/attr/relation")
+    public R getAttrRelation(@PathVariable("attrGroupId") Long attrGroupId) {
+        List<AttrEntity> attrs = attrService.getAttrsByAttrGroupId(attrGroupId);
+        return R.ok().put("data", attrs);
+    }
+
+    /**
+     *  添加属性与分组关联关系
+     */
+    @PostMapping("/attr/relation")
+    public R addAttrRelation() {
+        return R.ok();
+    }
+
+    /**
+     *  删除属性与分组的关联关系
+     */
+    @PostMapping("/attr/relation/delete")
+    public R deleteAttrRelations(@RequestBody List<AttrAttrgroupRelationVo> relationVos) {
+        attrGroupService.deleteAttrRelations(relationVos);
         return R.ok();
     }
 
