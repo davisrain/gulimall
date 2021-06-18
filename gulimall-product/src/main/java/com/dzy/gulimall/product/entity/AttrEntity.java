@@ -56,5 +56,9 @@ public class AttrEntity implements Serializable {
 	 * 快速展示【是否展示在介绍上；0-否 1-是】，在sku中仍然可以调整
 	 */
 	private Integer showDesc;
+    /**
+     * 值类型【0-只能一个值 1-允许多个值】
+     */
+	private Integer valueType;
 
 }

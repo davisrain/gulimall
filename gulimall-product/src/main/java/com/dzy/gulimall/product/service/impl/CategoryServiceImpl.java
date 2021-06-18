@@ -62,16 +62,16 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Override
     public Long[] getCatelogPath(Long catelogId) {
         List<Long> list = new ArrayList<>();
-        catelogPath(catelogId, list);
+        findCatelogPath(catelogId, list);
         Collections.reverse(list);
         return list.toArray(new Long[0]);
     }
 
-    private void catelogPath(Long catelogId, List<Long> list) {
+    public void findCatelogPath(Long catelogId, List<Long> list) {
         list.add(catelogId);
         CategoryEntity category = this.getById(catelogId);
-        if(category.getParentCid() != 0) {
-            catelogPath(category.getParentCid(), list);
+        if(category != null && category.getParentCid() != 0) {
+            findCatelogPath(category.getParentCid(), list);
         }
     }
 

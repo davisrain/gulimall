@@ -3,6 +3,7 @@ package com.dzy.gulimall.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.dzy.gulimall.product.vo.AttrRespVo;
 import com.dzy.gulimall.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,10 +34,11 @@ public class AttrController {
     private AttrService attrService;
 
     ///product/attr/base/list/{catelogId}
-    @GetMapping("/base/list/{catelogId}")
+    @GetMapping("/{attrType}/list/{catelogId}")
     public R attrBaseList(@RequestParam Map<String, Object> params,
-                          @PathVariable("catelogId") Long catelogId) {
-        PageUtils page = attrService.queryAttrBasePage(params, catelogId);
+                          @PathVariable("catelogId") Long catelogId,
+                          @PathVariable("attrType") String attrType) {
+        PageUtils page = attrService.queryAttrBasePage(params, catelogId, attrType);
         return R.ok().put("page", page);
     }
 
@@ -51,14 +53,12 @@ public class AttrController {
         return R.ok().put("page", page);
     }
 
-
     /**
      * 信息
      */
     @RequestMapping("/info/{attrId}")
-    //@RequiresPermissions("product:attr:info")
     public R info(@PathVariable("attrId") Long attrId){
-		AttrEntity attr = attrService.getById(attrId);
+		AttrRespVo attr = attrService.getAttrInfo(attrId);
 
         return R.ok().put("attr", attr);
     }
@@ -79,9 +79,8 @@ public class AttrController {
      */
     @RequestMapping("/update")
     //@RequiresPermissions("product:attr:update")
-    public R update(@RequestBody AttrEntity attr){
-		attrService.updateById(attr);
-
+    public R update(@RequestBody AttrVo attr){
+		attrService.updateAttr(attr);
         return R.ok();
     }
 
@@ -91,8 +90,7 @@ public class AttrController {
     @RequestMapping("/delete")
     //@RequiresPermissions("product:attr:delete")
     public R delete(@RequestBody Long[] attrIds){
-		attrService.removeByIds(Arrays.asList(attrIds));
-
+		attrService.removeAttrs(Arrays.asList(attrIds));
         return R.ok();
     }
 

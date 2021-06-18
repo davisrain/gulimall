@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AttrRespVo extends AttrVo {
 
-    private String attrGroupName;
-
+    private String groupName;
     private String catelogName;
+    private Long[] catelogPath;
+
 }
