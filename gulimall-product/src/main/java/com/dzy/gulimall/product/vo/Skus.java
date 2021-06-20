@@ -1,0 +1,29 @@
+
+package com.dzy.gulimall.product.vo;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Skus {
+
+    private List<Attr> attr;
+    private String skuName;
+    private BigDecimal price;
+    private String skuTitle;
+    private String skuSubtitle;
+    private List<Images> images;
+    private List<String> descar;
+    private Integer fullCount;
+    private BigDecimal discount;
+    private Integer countStatus;
+    private BigDecimal fullPrice;
+    private BigDecimal reducePrice;
+    private Integer priceStatus;
+    private List<MemberPrice> memberPrice;
+}

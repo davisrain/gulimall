@@ -13,26 +13,35 @@ spring:
         namespace: gateway
     gateway:
       routes:
-        - id: route1
-          uri: https://www.baidu.com
-          predicates:
-            - Query=uri,baidu
-        - id: route2
-          uri: https://www.qq.com
-          predicates:
-            - Query=uri,qq
+#        - id: route1
+#          uri: https://www.baidu.com
+#          predicates:
+#            - Query=uri,baidu
+#        - id: route2
+#          uri: https://www.qq.com
+#          predicates:
+#            - Query=uri,qq
         - id: product_route
           uri: lb://gulimall-product
           predicates:
             - Path=/api/product/**
           filters:
             - StripPrefix=1
+
+        - id: member_route
+          uri: lb://gulimall-member
+          predicates:
+            - Path=/api/member/**
+          filters:
+            - StripPrefix=1
+
         - id: thirdparty_route
           uri: lb://gulimall-thirdparty
           predicates:
             - Path=/api/thirdparty/**
           filters:
             - StripPrefix=1
+
         - id: admin_route
           uri: lb://renren-fast
           predicates:

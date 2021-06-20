@@ -15,6 +15,14 @@
         <result property="catelogId" column="catelog_id"/>
         <result property="showDesc" column="show_desc"/>
     </resultMap>
-
+    <select id="getNoRelationAttrsByAttrGroupId" resultType="com.dzy.gulimall.product.entity.AttrEntity">
+        select a.* from `pms_attr` a where a.catelog_id = #{catelogId}
+        and not exists (select 1 from `pms_attr_attrgroup_relation` b where b.attr_id = a.attr_id)
+        and a.attr_type = 1
+        <if test="params.key.length > 0">
+            and (a.attr_id = #{params.key} or a.attr_name like concat("%", #{params.key}, "%"))
+        </if>
+        limit ${(params.page - 1) * params.limit},#{params.limit}
+    </select>
 
 </mapper>

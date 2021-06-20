@@ -1,5 +1,6 @@
 package com.dzy.gulimall.product.service.impl;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.dzy.common.constant.ProductConstant;
 import com.dzy.gulimall.product.dao.AttrAttrgroupRelationDao;
 import com.dzy.gulimall.product.dao.AttrGroupDao;
@@ -30,6 +31,7 @@ import com.dzy.gulimall.product.dao.AttrDao;
 import com.dzy.gulimall.product.entity.AttrEntity;
 import com.dzy.gulimall.product.service.AttrService;
 import org.springframework.transaction.annotation.Transactional;
+import org.w3c.dom.Attr;
 
 
 @Service("attrService")
@@ -167,11 +169,53 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     }
 
     @Override
-    public List<AttrEntity> getAttrsByAttrGroupId(Long attrGroupId) {
+    public List<AttrEntity> getRelationAttrsByAttrGroupId(Long attrGroupId) {
         List<AttrAttrgroupRelationEntity> relations = attrAttrgroupRelationDao.selectList(
                 new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_group_id", attrGroupId));
         List<Long> attrIds = relations.stream().map(AttrAttrgroupRelationEntity::getAttrId).collect(Collectors.toList());
+        if (attrIds.isEmpty())
+            return new ArrayList<AttrEntity>();
         return baseMapper.selectBatchIds(attrIds);
     }
+
+    @Override
+    public PageUtils getNoRelationAttrsByAttrGroupId(Long attrGroupId, Map<String, Object> params) {
+        //方法一：
+        //1、先根据属性分组id查出对应的分类id
+        AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrGroupId);
+        //2、根据分类id查出分类下的所有属性分组
+        List<AttrGroupEntity> attrGroups = attrGroupDao.selectList(
+                new QueryWrapper<AttrGroupEntity>().eq("catelog_id", attrGroupEntity.getCatelogId()));
+        List<Long> attrGroupIds = attrGroups.stream().map(AttrGroupEntity::getAttrGroupId).collect(Collectors.toList());
+        //3、查出被该分类下所有属性分组关联过的基本属性
+        List<AttrAttrgroupRelationEntity> relations = attrAttrgroupRelationDao.selectList(
+                new QueryWrapper<AttrAttrgroupRelationEntity>().in("attr_group_id", attrGroupIds));
+        List<Long> attrIds = relations.stream().map(AttrAttrgroupRelationEntity::getAttrId).collect(Collectors.toList());
+        //4、查看该分类下不包含这些基本属性的属性
+        QueryWrapper<AttrEntity> wrapper = new QueryWrapper<AttrEntity>()
+                .eq("attr_type", ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode());
+        String key = (String) params.get("key");
+        if(attrIds.size() > 0) {
+            wrapper.notIn("attr_id", attrIds);
+        }
+        if(StringUtils.isNotBlank(key)) {
+            wrapper.and(w -> {
+                w.eq("attr_id", key).or().like("attr_name", key);
+            });
+        }
+        IPage<AttrEntity> page = this.page(new Query<AttrEntity>().getPage(params), wrapper);
+        return new PageUtils(page);
+
+//        //方法二：
+//        AttrGroupEntity attrGroupEntity = attrGroupDao.selectById(attrGroupId);
+//        List<AttrEntity> attrs = baseMapper.getNoRelationAttrsByAttrGroupId(params, attrGroupEntity.getCatelogId());
+//        return new PageUtils(new Page<AttrEntity>(Long.parseLong((String)params.get("page")),
+//                Long.parseLong((String)params.get("limit"))).setRecords(attrs));
+
+
+
+
+    }
+
 
 }

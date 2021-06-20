@@ -1,7 +1,12 @@
 package com.dzy.gulimall.product.service.impl;
 
+import com.dzy.gulimall.product.vo.AttrAttrgroupRelationVo;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -24,6 +29,17 @@ public class AttrAttrgroupRelationServiceImpl extends ServiceImpl<AttrAttrgroupR
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void saveBatch(List<AttrAttrgroupRelationVo> relationVos) {
+        List<AttrAttrgroupRelationEntity> relations = relationVos.stream().map(relationVo -> {
+            AttrAttrgroupRelationEntity relation = new AttrAttrgroupRelationEntity();
+            relation.setAttrId(relationVo.getAttrId());
+            relation.setAttrGroupId(relationVo.getAttrGroupId());
+            return relation;
+        }).collect(Collectors.toList());
+        saveBatch(relations);
     }
 
 }
