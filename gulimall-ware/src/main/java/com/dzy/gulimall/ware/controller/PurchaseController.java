@@ -5,7 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import com.dzy.gulimall.ware.Vo.PurchaseMergeVo;
+import com.dzy.gulimall.ware.vo.PurchaseDoneVo;
+import com.dzy.gulimall.ware.vo.PurchaseMergeVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,6 +61,24 @@ public class PurchaseController {
     @PostMapping("/merge")
     public R mergePurchaseDetail(@RequestBody PurchaseMergeVo mergeVo) {
         purchaseService.mergePurchaseDetail(mergeVo);
+        return R.ok();
+    }
+
+    /**
+     *  领取采购单
+     */
+    @PostMapping("/received")
+    public R receivedPurchase(@RequestBody List<Long> purchaseIds) {
+        purchaseService.receivedPurchase(purchaseIds);
+        return R.ok();
+    }
+
+    /**
+     *  完成采购
+     */
+    @PostMapping("/done")
+    public R donePurchase(@RequestBody PurchaseDoneVo doneVo) {
+        purchaseService.donePurchase(doneVo);
         return R.ok();
     }
 

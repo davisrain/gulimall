@@ -2,7 +2,8 @@ package com.dzy.gulimall.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dzy.common.utils.PageUtils;
-import com.dzy.gulimall.ware.Vo.PurchaseMergeVo;
+import com.dzy.gulimall.ware.vo.PurchaseDoneVo;
+import com.dzy.gulimall.ware.vo.PurchaseMergeVo;
 import com.dzy.gulimall.ware.entity.PurchaseEntity;
 
 import java.util.List;
@@ -22,5 +23,9 @@ public interface PurchaseService extends IService<PurchaseEntity> {
     PageUtils getUnreceiveList(Map<String, Object> params);
 
     void mergePurchaseDetail(PurchaseMergeVo mergeVo);
+
+    void receivedPurchase(List<Long> purchaseIds);
+
+    void donePurchase(PurchaseDoneVo doneVo);
 }
 
