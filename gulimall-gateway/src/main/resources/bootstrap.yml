@@ -35,6 +35,13 @@ spring:
           filters:
             - StripPrefix=1
 
+        - id: ware_route
+          uri: lb://gulimall-ware
+          predicates:
+            - Path=/api/ware/**
+          filters:
+            - StripPrefix=1
+
         - id: thirdparty_route
           uri: lb://gulimall-thirdparty
           predicates:

@@ -135,7 +135,7 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
                     defaultImg = skuImage.getImgUrl();
             }
             SkuInfoEntity skuInfo = new SkuInfoEntity();
-            BeanUtils.copyProperties(skuInfo, sku);
+            BeanUtils.copyProperties(sku, skuInfo);
             skuInfo.setSpuId(spuInfo.getId());
             skuInfo.setCatalogId(spuInfo.getCatalogId());
             skuInfo.setBrandId(spuInfo.getBrandId());
@@ -176,6 +176,27 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         });
 
 
+    }
+
+    @Override
+    public PageUtils queryPageByCondition(Map<String, Object> params) {
+        QueryWrapper<SpuInfoEntity> wrapper = new QueryWrapper<>();
+        String key = (String) params.get("key");
+        String catelogId = (String) params.get("catelogId");
+        String brandId = (String) params.get("brandId");
+        String status = (String) params.get("status");
+        if(StringUtils.isNotBlank(key))
+            wrapper.and(w -> {
+                w.eq("spu_id", key).or().like("spu_name", key);
+            });
+        if(StringUtils.isNotEmpty(catelogId) && !"0".equals(catelogId))
+            wrapper.eq("catalog_id", catelogId);
+        if(StringUtils.isNotEmpty(brandId) && !"0".equals(catelogId))
+            wrapper.eq("brand_id", brandId);
+        if(StringUtils.isNotEmpty(status))
+            wrapper.eq("publish_status", status);
+        IPage<SpuInfoEntity> page = this.page(new Query<SpuInfoEntity>().getPage(params), wrapper);
+        return new PageUtils(page);
     }
 
 
