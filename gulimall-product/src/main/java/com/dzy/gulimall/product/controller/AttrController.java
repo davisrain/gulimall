@@ -1,13 +1,17 @@
 package com.dzy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.dzy.gulimall.product.entity.ProductAttrValueEntity;
+import com.dzy.gulimall.product.service.ProductAttrValueService;
 import com.dzy.gulimall.product.vo.AttrRespVo;
 import com.dzy.gulimall.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,7 +37,9 @@ public class AttrController {
     @Autowired
     private AttrService attrService;
 
-    ///product/attr/base/list/{catelogId}
+    @Autowired
+    ProductAttrValueService productAttrValueService;
+
     @GetMapping("/{attrType}/list/{catelogId}")
     public R attrBaseList(@RequestParam Map<String, Object> params,
                           @PathVariable("catelogId") Long catelogId,
@@ -54,6 +60,14 @@ public class AttrController {
     }
 
     /**
+     *  获取spu规格
+     */
+    @GetMapping("/base/listforspu/{spuId}")
+    public R listForSpu(@PathVariable("spuId") Long spuId) {
+        List<ProductAttrValueEntity> attrValues =  productAttrValueService.listForSpu(spuId);
+        return R.ok().put("data", attrValues);
+    }
+    /**
      * 信息
      */
     @RequestMapping("/info/{attrId}")
@@ -67,7 +81,6 @@ public class AttrController {
      * 保存
      */
     @RequestMapping("/save")
-    //@RequiresPermissions("product:attr:save")
     public R save(@RequestBody AttrVo attr){
 		attrService.saveAttr(attr);
 
@@ -78,9 +91,18 @@ public class AttrController {
      * 修改
      */
     @RequestMapping("/update")
-    //@RequiresPermissions("product:attr:update")
     public R update(@RequestBody AttrVo attr){
 		attrService.updateAttr(attr);
+        return R.ok();
+    }
+
+    /**
+     *  修改商品规格
+     */
+    @PostMapping("/update/{spuId}")
+    public R updateAttrValueBySpuId(@PathVariable("spuId") Long spuId,
+                                    @RequestBody List<ProductAttrValueEntity> attrValues) {
+        productAttrValueService.updateAttrValueBySpuId(spuId, attrValues);
         return R.ok();
     }
 
