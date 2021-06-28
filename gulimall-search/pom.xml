@@ -9,9 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>gulimall-search</artifactId>
-    <properties>
-        <elasticsearch.version>7.4.2</elasticsearch.version>
-    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.dzy.gulimall</groupId>
@@ -27,7 +25,27 @@
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>${elasticsearch.version}</version>
+            <version>7.4.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.elasticsearch</groupId>
+                    <artifactId>elasticsearch</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.elasticsearch.client</groupId>
+                    <artifactId>elasticsearch-rest-client</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch</groupId>
+            <artifactId>elasticsearch</artifactId>
+            <version>7.4.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>7.4.2</version>
         </dependency>
     </dependencies>
 

@@ -43,6 +43,17 @@ public class GulimallSearchTest {
         IndexResponse response = client.index(request, ElasticSearchConfig.COMMON_OPTIONS);
         System.out.println(response);
     }
+
+    /**
+     *  复杂查询测试
+     */
+    @Test
+    public void searchData() {
+
+    }
+
+
+
     @Data
     class User {
         private String userName;
