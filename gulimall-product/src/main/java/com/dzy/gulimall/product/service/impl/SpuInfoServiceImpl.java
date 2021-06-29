@@ -2,6 +2,7 @@ package com.dzy.gulimall.product.service.impl;
 
 import com.dzy.common.to.SkuReductionTo;
 import com.dzy.common.to.SpuBoundsTo;
+import com.dzy.common.to.es.SkuEsModel;
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.product.entity.AttrEntity;
 import com.dzy.gulimall.product.entity.ProductAttrValueEntity;
@@ -197,6 +198,23 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             wrapper.eq("publish_status", status);
         IPage<SpuInfoEntity> page = this.page(new Query<SpuInfoEntity>().getPage(params), wrapper);
         return new PageUtils(page);
+    }
+
+    /**
+     *  商品上架
+     */
+    @Override
+    public void up(Long spuId) {
+        //1.查出spuId对应的sku
+        List<SkuInfoEntity> skus = skuInfoService.getSkusBySpuId(spuId);
+        //2.将sku转换为SkuEsModel
+        List<SkuEsModel> skuEsModels = skus.stream().map(sku -> {
+            SkuEsModel skuEsModel = new SkuEsModel();
+            BeanUtils.copyProperties(sku, skuEsModel);
+            //TODO 不一样的参数处理
+            return skuEsModel;
+        }).collect(Collectors.toList());
+        //TODO 远程调用search微服务的接口上传到es
     }
 
 

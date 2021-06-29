@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.dzy.gulimall.product.vo.SpuSaveVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,6 +31,15 @@ import com.dzy.common.utils.R;
 public class SpuInfoController {
     @Autowired
     private SpuInfoService spuInfoService;
+
+    /**
+     *  商品上架
+     */
+    @GetMapping("/{spuId}/up")
+    public R up(@PathVariable("spuId") Long spuId) {
+        spuInfoService.up(spuId);
+        return R.ok();
+    }
 
     /**
      * 列表
