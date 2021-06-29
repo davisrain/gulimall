@@ -20,4 +20,6 @@ public interface AttrDao extends BaseMapper<AttrEntity> {
 
     List<AttrEntity> getNoRelationAttrsByAttrGroupId(@Param("params") Map<String, Object> params,
                                                      @Param("catelogId") Long catelogId);
+
+    List<Long> getSearchAttrIdsByIds(@Param("attrIds") List<Long> attrIds);
 }

@@ -1,6 +1,7 @@
 package com.dzy.gulimall.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.dzy.common.to.SkuHasStockTo;
 import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.ware.entity.WareSkuEntity;
 
@@ -20,5 +21,7 @@ public interface WareSkuService extends IService<WareSkuEntity> {
 
 
     void addStockByPurchaseDetailIds(List<Long> successPurchaseDetailIds);
+
+    List<SkuHasStockTo> getHasStockBySkuIds(List<Long> skuIds);
 }
 

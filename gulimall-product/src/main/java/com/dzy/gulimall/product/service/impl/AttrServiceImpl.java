@@ -217,5 +217,10 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
     }
 
+    @Override
+    public List<Long> getSearchAttrIdsByIds(List<Long> attrIds) {
+        return baseMapper.getSearchAttrIdsByIds(attrIds);
+    }
+
 
 }
