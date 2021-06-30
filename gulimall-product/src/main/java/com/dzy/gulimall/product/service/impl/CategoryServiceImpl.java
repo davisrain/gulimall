@@ -1,6 +1,7 @@
 package com.dzy.gulimall.product.service.impl;
 
 import com.dzy.gulimall.product.service.CategoryBrandRelationService;
+import com.dzy.gulimall.product.vo.Catalog2Vo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -85,6 +86,30 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+    @Override
+    public List<CategoryEntity> getLevel1Categories() {
+
+       return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
+    }
+
+    @Override
+    public Map<String, List<Catalog2Vo>> getCatalogJson() {
+        List<CategoryEntity> level1Categories = getLevel1Categories();
+        Map<String, List<Catalog2Vo>> result = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> level2Categories = baseMapper.selectList(new QueryWrapper<CategoryEntity>()
+                    .eq("parent_cid", v.getCatId()));
+            return level2Categories.stream().map(level2Category -> {
+                List<CategoryEntity> level3Categories = baseMapper.selectList(new QueryWrapper<CategoryEntity>()
+                        .eq("parent_cid", level2Category.getCatId()));
+                List<Catalog2Vo.Catalog3Vo> catalog3Vos = level3Categories.stream().map(level3Category ->
+                        new Catalog2Vo.Catalog3Vo(level2Category.getCatId().toString(), level3Category.getCatId().toString(), level3Category.getName())
+                ).collect(Collectors.toList());
+                return new Catalog2Vo(v.getCatId().toString(), level2Category.getCatId().toString(), level2Category.getName(), catalog3Vos);
+            }).collect(Collectors.toList());
+        }));
+        return result;
+    }
+
 
     private List<CategoryEntity> getSubCategories(CategoryEntity root, List<CategoryEntity> all) {
         return all.stream().filter(category -> category.getParentCid().equals(root.getCatId()))
@@ -94,5 +119,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                 }).sorted((category1, category2) -> (category1.getSort() == null? 0 : category1.getSort()) - (category2.getSort() == null? 0: category2.getSort()))
                 .collect(Collectors.toList());
     }
+
 
 }
