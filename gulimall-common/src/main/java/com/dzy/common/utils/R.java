@@ -8,6 +8,8 @@
 
 package com.dzy.common.utils;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.exception.BizCodeEnum;
 import org.apache.http.HttpStatus;
 
@@ -72,4 +74,14 @@ public class R extends HashMap<String, Object> {
 	public Integer getCode() {
 		return (Integer)get("code");
 	}
+
+	public R setData(Object data) {
+	    put("data", data);
+	    return this;
+    }
+
+    public <T> T getData(TypeReference<T> typeReference) {
+        Object data = get("data");
+        return JSON.parseObject(JSON.toJSONString(data), typeReference);
+    }
 }

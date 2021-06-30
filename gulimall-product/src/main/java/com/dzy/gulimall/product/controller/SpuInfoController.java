@@ -7,6 +7,7 @@ import com.dzy.gulimall.product.vo.SpuSaveVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -35,7 +36,7 @@ public class SpuInfoController {
     /**
      *  商品上架
      */
-    @GetMapping("/{spuId}/up")
+    @PostMapping("/{spuId}/up")
     public R up(@PathVariable("spuId") Long spuId) {
         spuInfoService.up(spuId);
         return R.ok();

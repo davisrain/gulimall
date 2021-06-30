@@ -92,8 +92,8 @@ public class WareSkuController {
      * 根据skuIds查询该sku是否有库存
      */
     @PostMapping("/hasStock")
-    public List<SkuHasStockTo> getHasStockBySkuIds(@RequestBody List<Long> skuIds) {
-        return wareSkuService.getHasStockBySkuIds(skuIds);
+    public R getHasStockBySkuIds(@RequestBody List<Long> skuIds) {
+        return R.ok().setData(wareSkuService.getHasStockBySkuIds(skuIds));
     }
 
 }

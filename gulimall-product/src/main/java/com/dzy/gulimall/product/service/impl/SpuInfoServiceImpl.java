@@ -1,5 +1,7 @@
 package com.dzy.gulimall.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
+import com.dzy.common.constant.ProductConstant;
 import com.dzy.common.to.SkuHasStockTo;
 import com.dzy.common.to.SkuReductionTo;
 import com.dzy.common.to.SpuBoundsTo;
@@ -15,6 +17,7 @@ import com.dzy.gulimall.product.entity.SkuSaleAttrValueEntity;
 import com.dzy.gulimall.product.entity.SpuImagesEntity;
 import com.dzy.gulimall.product.entity.SpuInfoDescEntity;
 import com.dzy.gulimall.product.feign.CouponFeignService;
+import com.dzy.gulimall.product.feign.SearchFeignService;
 import com.dzy.gulimall.product.feign.WareFeignService;
 import com.dzy.gulimall.product.service.AttrService;
 import com.dzy.gulimall.product.service.BrandService;
@@ -37,6 +40,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
@@ -90,6 +95,9 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    SearchFeignService searchFeignService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -237,9 +245,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
         Map<Long, Boolean> stockMap = null;
         try {
             List<Long> skuIds = skus.stream().map(SkuInfoEntity::getSkuId).collect(Collectors.toList());
-            List<SkuHasStockTo> hasStockBySkuIds = wareFeignService.getHasStockBySkuIds(skuIds);
-            stockMap = hasStockBySkuIds.stream()
-                    .collect(Collectors.toMap(SkuHasStockTo::getSkuId, SkuHasStockTo::getHasStock));
+            R r = wareFeignService.getHasStockBySkuIds(skuIds);
+            if(r.getCode() == 0) {
+                List<SkuHasStockTo> skuHasStockTos = r.getData(new TypeReference<List<SkuHasStockTo>>() {
+                });
+                stockMap = skuHasStockTos.stream()
+                        .collect(Collectors.toMap(SkuHasStockTo::getSkuId, SkuHasStockTo::getHasStock));
+            } else {
+                throw new Exception((String)r.get("msg"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -264,7 +278,15 @@ public class SpuInfoServiceImpl extends ServiceImpl<SpuInfoDao, SpuInfoEntity> i
             skuEsModel.setHasStock(finalStockMap == null? true : finalStockMap.get(sku.getSkuId()));
             return skuEsModel;
         }).collect(Collectors.toList());
-        //TODO 远程调用search微服务的接口上传到es
+        //远程调用search微服务的接口上传到es
+        R r = searchFeignService.upProduct(skuEsModels);
+        if(r.getCode() == 0) {
+            //远程调用成功，修改商品上架状态
+            baseMapper.updatePublishStatusBySpuId(spuId, ProductConstant.StatusEnum.SPU_UP.getCode());
+        } else {
+            //远程调用失败
+            //TODO 重复调用？接口幂等性：重试机制？
+        }
     }
 
 
