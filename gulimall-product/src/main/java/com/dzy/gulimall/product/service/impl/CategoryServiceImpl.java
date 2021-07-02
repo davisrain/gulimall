@@ -94,13 +94,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
-        List<CategoryEntity> level1Categories = getLevel1Categories();
+        //对业务逻辑进行优化，避免循环取库
+        //将我们需要的分类数据一次性从库里全部取出，再进行遍历循环筛选
+        List<CategoryEntity> categories = baseMapper.selectList(null);
+        List<CategoryEntity> level1Categories = getCategoriesByParentCid(categories, 0L);
         Map<String, List<Catalog2Vo>> result = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
-            List<CategoryEntity> level2Categories = baseMapper.selectList(new QueryWrapper<CategoryEntity>()
-                    .eq("parent_cid", v.getCatId()));
+            List<CategoryEntity> level2Categories = getCategoriesByParentCid(categories, v.getCatId());
             return level2Categories.stream().map(level2Category -> {
-                List<CategoryEntity> level3Categories = baseMapper.selectList(new QueryWrapper<CategoryEntity>()
-                        .eq("parent_cid", level2Category.getCatId()));
+                List<CategoryEntity> level3Categories = getCategoriesByParentCid(categories, level2Category.getCatId());
                 List<Catalog2Vo.Catalog3Vo> catalog3Vos = level3Categories.stream().map(level3Category ->
                         new Catalog2Vo.Catalog3Vo(level2Category.getCatId().toString(), level3Category.getCatId().toString(), level3Category.getName())
                 ).collect(Collectors.toList());
@@ -109,6 +110,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }));
         return result;
     }
+
+    private List<CategoryEntity> getCategoriesByParentCid(List<CategoryEntity> categories, Long parentCid) {
+        return categories.stream().filter(category -> category.getParentCid().equals(parentCid)).collect(Collectors.toList());
+    }
+
 
 
     private List<CategoryEntity> getSubCategories(CategoryEntity root, List<CategoryEntity> all) {

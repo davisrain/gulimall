@@ -31,5 +31,5 @@ mybatis-plus:
 
 logging:
   level:
-    com.dzy.gulimall: debug
+    com.dzy.gulimall: error
 
