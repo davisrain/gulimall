@@ -6,6 +6,8 @@ import com.dzy.gulimall.product.service.BrandService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -16,6 +18,18 @@ public class MyTest {
     @Autowired
     BrandService brandService;
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+    @Test
+    public void testRedisTemplate() {
+        ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
+        opsForValue.set("hello", "world");
+        //获取刚才存入redis的数据
+        String hello = opsForValue.get("hello");
+        System.out.println(hello);
+
+    }
 
     @Test
     public void testAdd() {

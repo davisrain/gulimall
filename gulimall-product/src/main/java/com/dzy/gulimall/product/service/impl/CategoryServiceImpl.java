@@ -1,9 +1,12 @@
 package com.dzy.gulimall.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.dzy.gulimall.product.service.CategoryBrandRelationService;
 import com.dzy.gulimall.product.vo.Catalog2Vo;
-import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import com.dzy.gulimall.product.dao.CategoryDao;
 import com.dzy.gulimall.product.entity.CategoryEntity;
 import com.dzy.gulimall.product.service.CategoryService;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 
 @Service("categoryService")
@@ -29,6 +33,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -80,7 +87,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Transactional
     public void updateDetail(CategoryEntity category) {
         updateById(category);
-        if(StringUtils.isNotEmpty(category.getName())) {
+        if(StringUtils.hasText(category.getName())) {
             categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
             //TODO 更新其他关联
         }
@@ -94,21 +101,46 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
-        //对业务逻辑进行优化，避免循环取库
-        //将我们需要的分类数据一次性从库里全部取出，再进行遍历循环筛选
-        List<CategoryEntity> categories = baseMapper.selectList(null);
-        List<CategoryEntity> level1Categories = getCategoriesByParentCid(categories, 0L);
-        Map<String, List<Catalog2Vo>> result = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
-            List<CategoryEntity> level2Categories = getCategoriesByParentCid(categories, v.getCatId());
-            return level2Categories.stream().map(level2Category -> {
-                List<CategoryEntity> level3Categories = getCategoriesByParentCid(categories, level2Category.getCatId());
-                List<Catalog2Vo.Catalog3Vo> catalog3Vos = level3Categories.stream().map(level3Category ->
-                        new Catalog2Vo.Catalog3Vo(level2Category.getCatId().toString(), level3Category.getCatId().toString(), level3Category.getName())
-                ).collect(Collectors.toList());
-                return new Catalog2Vo(v.getCatId().toString(), level2Category.getCatId().toString(), level2Category.getName(), catalog3Vos);
-            }).collect(Collectors.toList());
-        }));
-        return result;
+        ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
+        String catalogJson = opsForValue.get("catalogJson");
+        //如果缓存中没有，从数据库里取出
+        if(!StringUtils.hasText(catalogJson)) {
+            Map<String, List<Catalog2Vo>> catalogJsonFromDB = getCatalogJsonFromDB();
+            return catalogJsonFromDB;
+        }
+        System.out.println("缓存命中，直接返回");
+        return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>() {});
+    }
+
+
+    public Map<String, List<Catalog2Vo>> getCatalogJsonFromDB() {
+        //TODO 本地锁 synchronized JUC（lock） 等方法在分布式的情况无法完全锁住所有线程，只能锁住自己本服务的线程。使用分布式锁。
+        synchronized (this) {
+            ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
+            String catalogJson = opsForValue.get("catalogJson");
+            if(StringUtils.hasText(catalogJson)) {
+                System.out.println("缓存命中，直接返回");
+                return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>(){});
+            }
+            System.out.println("缓存不命中，查询了数据库");
+            //对业务逻辑进行优化，避免循环取
+            //将我们需要的分类数据一次性从库里全部取出，再进行遍历循环筛选
+            List<CategoryEntity> categories = baseMapper.selectList(null);
+            List<CategoryEntity> level1Categories = getCategoriesByParentCid(categories, 0L);
+            Map<String, List<Catalog2Vo>> result = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+                List<CategoryEntity> level2Categories = getCategoriesByParentCid(categories, v.getCatId());
+                return level2Categories.stream().map(level2Category -> {
+                    List<CategoryEntity> level3Categories = getCategoriesByParentCid(categories, level2Category.getCatId());
+                    List<Catalog2Vo.Catalog3Vo> catalog3Vos = level3Categories.stream().map(level3Category ->
+                            new Catalog2Vo.Catalog3Vo(level2Category.getCatId().toString(), level3Category.getCatId().toString(), level3Category.getName())
+                    ).collect(Collectors.toList());
+                    return new Catalog2Vo(v.getCatId().toString(), level2Category.getCatId().toString(), level2Category.getName(), catalog3Vos);
+                }).collect(Collectors.toList());
+            }));
+            //将取出的数据放入缓存，方便下次调用
+            opsForValue.set("catalogJson", JSON.toJSONString(result));
+            return result;
+        }
     }
 
     private List<CategoryEntity> getCategoriesByParentCid(List<CategoryEntity> categories, Long parentCid) {
