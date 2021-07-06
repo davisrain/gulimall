@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
 import com.dzy.gulimall.product.service.CategoryBrandRelationService;
 import com.dzy.gulimall.product.vo.Catalog2Vo;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -41,6 +43,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    RedissonClient redisson;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -110,11 +115,22 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         String catalogJson = opsForValue.get("catalogJson");
         //如果缓存中没有，从数据库里取出
         if(!StringUtils.hasText(catalogJson)) {
-            Map<String, List<Catalog2Vo>> catalogJsonFromDB = getCatalogJsonFromDBLockedByRedis();
+            Map<String, List<Catalog2Vo>> catalogJsonFromDB = getCatalogJsonFromDBLockedByRedisson();
             return catalogJsonFromDB;
         }
         System.out.println("缓存命中，直接返回");
         return JSON.parseObject(catalogJson, new TypeReference<Map<String, List<Catalog2Vo>>>() {});
+    }
+
+    public Map<String, List<Catalog2Vo>> getCatalogJsonFromDBLockedByRedisson() {
+        //锁的粒度越细，速度越快
+        RLock lock = redisson.getLock("catalogJson-lock");
+        lock.lock();
+        try {
+            return getCatalogJsonFromDB();
+        } finally {
+            lock.unlock();
+        }
     }
 
 
