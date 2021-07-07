@@ -3,9 +3,11 @@
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.dzy.gulimall.product.entity.BrandEntity;
 import com.dzy.gulimall.product.service.BrandService;
+import com.dzy.gulimall.product.vo.Attr;
 import org.junit.jupiter.api.Test;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.AutoConfigurationPackages;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
@@ -24,6 +26,15 @@ public class MyTest {
 
     @Autowired
     RedissonClient redissonClient;
+
+    @Autowired
+    Attr attr;
+
+    @Test
+    public void testImport() {
+        System.out.println(attr);
+    }
+
     @Test
     public void testRedisson() {
         System.out.println(redissonClient);

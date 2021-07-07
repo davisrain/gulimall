@@ -118,7 +118,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     /* key,表示存入缓存中的key的名字，key可以使用spEL表达式，通过反射获取各种数据，如果要填入字符串，
         需要给字符串加单引号，表示不是表达式的形式 */
     //@Cacheable代表当前方法的结果需要缓存，如果缓存里面有，就去缓存中拿。如果缓存没有，就执行方法，并将返回结果放入缓存中
-    @Cacheable(value = "category", key = "#root.methodName", sync = true)
+    @Cacheable(value = "category", key = "#root.methodName")
     @Override
     public List<CategoryEntity> getLevel1Categories() {
        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
