@@ -7,6 +7,9 @@ import com.dzy.gulimall.product.vo.Catalog2Vo;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -93,8 +96,15 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+
     @Override
     @Transactional
+//    @CacheEvict(value = "category", key = "'getLevel1Categories'")
+//    @Caching(evict = {
+//            @CacheEvict(value = "category", key="'getLevel1Categories'"),
+//            @CacheEvict(value = "category", key="'getCatalogJson'")
+//    })
+    @CacheEvict(value = "category", allEntries = true)
     public void updateDetail(CategoryEntity category) {
         updateById(category);
         if(StringUtils.hasText(category.getName())) {
@@ -103,14 +113,42 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+
+    //每一个缓存都需要指定将它放到哪个名字的缓存【缓存的分区】
+    /* key,表示存入缓存中的key的名字，key可以使用spEL表达式，通过反射获取各种数据，如果要填入字符串，
+        需要给字符串加单引号，表示不是表达式的形式 */
+    //@Cacheable代表当前方法的结果需要缓存，如果缓存里面有，就去缓存中拿。如果缓存没有，就执行方法，并将返回结果放入缓存中
+    @Cacheable(value = "category", key = "#root.methodName", sync = true)
     @Override
     public List<CategoryEntity> getLevel1Categories() {
-
        return baseMapper.selectList(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+    /**
+     *  使用SpringCache实现的结合缓存的查询方法
+     */
     @Override
+    @Cacheable(value = "category", key = "#root.methodName")
     public Map<String, List<Catalog2Vo>> getCatalogJson() {
+        List<CategoryEntity> categories = baseMapper.selectList(null);
+        List<CategoryEntity> level1Categories = getCategoriesByParentCid(categories, 0L);
+        Map<String, List<Catalog2Vo>> result = level1Categories.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            List<CategoryEntity> level2Categories = getCategoriesByParentCid(categories, v.getCatId());
+            return level2Categories.stream().map(level2Category -> {
+                List<CategoryEntity> level3Categories = getCategoriesByParentCid(categories, level2Category.getCatId());
+                List<Catalog2Vo.Catalog3Vo> catalog3Vos = level3Categories.stream().map(level3Category ->
+                        new Catalog2Vo.Catalog3Vo(level2Category.getCatId().toString(), level3Category.getCatId().toString(), level3Category.getName())
+                ).collect(Collectors.toList());
+                return new Catalog2Vo(v.getCatId().toString(), level2Category.getCatId().toString(), level2Category.getName(), catalog3Vos);
+            }).collect(Collectors.toList());
+        }));
+        return result;
+    }
+
+    /**
+     *  使用redisTemplate和redisson实现的结合缓存查询方法
+     */
+    public Map<String, List<Catalog2Vo>> getCatalogJson2() {
         ValueOperations<String, String> opsForValue = stringRedisTemplate.opsForValue();
         String catalogJson = opsForValue.get("catalogJson");
         //如果缓存中没有，从数据库里取出

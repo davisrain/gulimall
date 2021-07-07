@@ -24,6 +24,17 @@ spring:
       pool:
         max-active: 50
     timeout: 30000
+  cache:
+    type: redis
+    redis:
+      #自定义key的前缀
+#      key-prefix: cache_
+      #是否启用key的前缀
+      use-key-prefix: true
+      #ttl时间，缓存过期时间，单位为毫秒
+      time-to-live: 3600000
+      #开启缓存null数据
+      cache-null-values: true
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
