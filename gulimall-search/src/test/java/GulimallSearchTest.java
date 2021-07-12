@@ -21,6 +21,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @SpringBootTest(classes = {com.dzy.gulimall.search.GulimallSearchMain.class})
@@ -30,6 +31,12 @@ public class GulimallSearchTest {
     @Test
     public void testEsRestClient() {
         System.out.println(client);
+    }
+
+    @Test
+    public void testSplit() {
+        String str = "500_";
+        System.out.println(Arrays.asList(str.split("_")));
     }
 
     /**
