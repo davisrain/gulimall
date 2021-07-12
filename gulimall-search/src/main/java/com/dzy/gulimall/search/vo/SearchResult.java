@@ -36,6 +36,6 @@ public class SearchResult {
     public static class AttrVo {
         private Long attrId;
         private String attrName;
-        private String attrValue;
+        private List<String> attrValues;
     }
 }

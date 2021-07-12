@@ -27,6 +27,7 @@ import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilde
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregator;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightField;
 import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -153,6 +154,11 @@ public class MallSearchServiceImpl implements MallSearchService {
             for (SearchHit hit : hits) {
                 String sourceAsString = hit.getSourceAsString();
                 SkuEsModel skuEsModel = JSON.parseObject(sourceAsString, SkuEsModel.class);
+                if(StringUtils.hasText(searchParam.getKeyword())) {
+                    HighlightField skuTitle = hit.getHighlightFields().get("skuTitle");
+                    String highLight = skuTitle.fragments()[0].string();
+                    skuEsModel.setSkuTitle(highLight);
+                }
                 products.add(skuEsModel);
             }
         }
@@ -211,7 +217,7 @@ public class MallSearchServiceImpl implements MallSearchService {
             //设置属性的值
             List<String> values = attrValueAgg.getBuckets().stream().map(MultiBucketsAggregation.Bucket::getKeyAsString)
                     .collect(Collectors.toList());
-            attrVo.setAttrValue(String.join(",", values));
+            attrVo.setAttrValues(values);
             attrVos.add(attrVo);
         }
         searchResult.setAttrs(attrVos);
