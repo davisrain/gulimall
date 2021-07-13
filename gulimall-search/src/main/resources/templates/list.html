@@ -816,7 +816,7 @@
                     <div class="sl_value">
                         <ul>
                             <li th:each="catalog : ${result.catalogs}">
-                                <a th:href="${'javascript:searchProducts(&quot;catalog3Id&quot;,' + catalog.catalogId + ')'}"
+                                <a th:href="${'javascript:searchProducts(&quot;catalog3Id&quot;,' + catalog.catalogId + ',true)'}"
                                    th:text="${catalog.catalogName}">0-499</a>
                             </li>
                         </ul>
@@ -1982,7 +1982,7 @@
             sort = $(this).attr("sort") + "_desc"
         else
             sort = $(this).attr("sort") + "_asc";
-        searchProducts("sort", sort);
+        searchProducts("sort", sort, true);
     });
     //分页
     $("a.page_a").click(function () {
@@ -1993,12 +1993,17 @@
         });
         $(this).css({"border": 0,"color":"#ee2222","background": "#fff"})
         let pageTo = $(this).attr("pageTo");
-        searchProducts("pageNum", pageTo);
+        searchProducts("pageNum", pageTo, true);
         return false;
     });
-    function searchProducts(name, value) {
+    function searchProducts(name, value, single) {
         let href = location.href;
-        location.href = changeUrlArg(href, name, value);
+        if(single)
+            location.href = changeUrlArg(href, name, value);
+        else {
+            href = href.match('[\?]') ? href + "&" + name + "=" + value : href + "?" + name + "=" + value;
+            location.href = href;
+        }
     };
     function changeUrlArg(url, arg, val){
         var pattern = arg+'=([^&]*)';
