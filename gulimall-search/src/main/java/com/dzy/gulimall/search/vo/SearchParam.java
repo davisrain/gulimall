@@ -18,7 +18,7 @@ public class SearchParam {
      */
     private String sort;
     private List<Long> brandId;     //根据品牌筛选，可以多选
-    private Integer hasStock = 1;        //根据是否有货进行筛选，hasStock=0/1
+    private Integer hasStock;        //根据是否有货进行筛选，hasStock=0/1
     private String skuPrice;        //根据价格区间进行筛选，skuPrice=0_500/_500/500_
     /*
         根据属性筛选
@@ -27,4 +27,6 @@ public class SearchParam {
      */
     private List<String> attrs;
     private Integer pageNum = 1;        //根据页码查询
+
+    private String _queryString;        //请求携带的参数字符串
 }

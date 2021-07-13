@@ -1,10 +1,14 @@
 package com.dzy.gulimall.search.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.to.es.SkuEsModel;
+import com.dzy.common.utils.R;
 import com.dzy.gulimall.search.config.ElasticSearchConfig;
 import com.dzy.gulimall.search.constant.EsConstant;
+import com.dzy.gulimall.search.feign.ProductFeignService;
 import com.dzy.gulimall.search.service.MallSearchService;
+import com.dzy.gulimall.search.vo.AttrResponseVo;
 import com.dzy.gulimall.search.vo.SearchParam;
 import com.dzy.gulimall.search.vo.SearchResult;
 import org.apache.lucene.search.join.ScoreMode;
@@ -34,6 +38,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -43,6 +49,9 @@ public class MallSearchServiceImpl implements MallSearchService {
 
     @Autowired
     RestHighLevelClient client;
+
+    @Autowired
+    ProductFeignService productFeignService;
 
     @Override
     public SearchResult search(SearchParam searchParam) {
@@ -227,6 +236,39 @@ public class MallSearchServiceImpl implements MallSearchService {
             attrVos.add(attrVo);
         }
         searchResult.setAttrs(attrVos);
+        //4.设置面包屑导航栏的信息
+        List<String> attrs = searchParam.getAttrs();
+        if(attrs != null && attrs.size() > 0) {
+            List<SearchResult.NavVo> navs = attrs.stream().map(attr -> {
+                SearchResult.NavVo navVo = new SearchResult.NavVo();
+                String[] s = attr.split("_");
+                //设置属性名称,远程调用gulimall-product获取
+                R r = productFeignService.getAttrByAttrId(Long.parseLong(s[0]));
+                if (r.getCode() == 0) {
+                    AttrResponseVo attrResponseVo = r.getData("attr", new TypeReference<AttrResponseVo>() {
+                    });
+                    navVo.setAttrName(attrResponseVo.getAttrName());
+                } else {
+                    navVo.setAttrName(s[0]);
+                }
+                //设置属性值
+                navVo.setAttrValue(s[1]);
+                //设置删除面包屑要跳转的链接
+                String queryString = searchParam.get_queryString();
+                String encodeAttr = null;
+                try {
+                    //需要将属性进行url编码才能与前端传来的值匹配，并且java的url编码会将空格转为+，而页面是转为%20，
+                    //因此空格需要特殊处理，将+替换为%20
+                    encodeAttr = URLEncoder.encode(attr, "UTF-8").replace("+", "%20");
+                } catch (UnsupportedEncodingException e) {
+                    e.printStackTrace();
+                }
+                String url = queryString.replaceAll("&?attrs=" + encodeAttr, "");
+                navVo.setLink(StringUtils.hasText(url) ? "http://search.gulimall.com/list.html?" + url : "http://search.gulimall.com/list.html");
+                return navVo;
+            }).collect(Collectors.toList());
+            searchResult.setNavs(navs);
+        }
         return searchResult;
     }
 }
