@@ -171,6 +171,12 @@ public class MallSearchServiceImpl implements MallSearchService {
         //总页数
         searchResult.setTotalPages(searchResult.getTotal() % EsConstant.PRODUCT_PAGESIZE == 0 ?
                 searchResult.getTotal() / EsConstant.PRODUCT_PAGESIZE : searchResult.getTotal() / EsConstant.PRODUCT_PAGESIZE + 1);
+        //页码导航集合
+        List<Integer> pageNavs = new ArrayList<>();
+        for(int i = 1; i <= searchResult.getTotalPages(); i++){
+            pageNavs.add(i);
+        }
+        searchResult.setPageNavs(pageNavs);
         //3.查询到的聚合信息
         Aggregations aggregations = searchResponse.getAggregations();
         //品牌信息

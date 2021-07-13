@@ -14,6 +14,7 @@ public class SearchResult {
     private Integer pageNum;    //当前页码
     private Integer total;      //总记录数
     private Integer totalPages;     //总页码数
+    private List<Integer> pageNavs;
 
     private List<BrandVo> brands;   //查询到的品牌信息
     private List<CatalogVo> catalogs;    //查询到的分类信息
