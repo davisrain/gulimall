@@ -3,6 +3,7 @@ package com.dzy.gulimall.search.vo;
 import com.dzy.common.to.es.SkuEsModel;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -21,6 +22,8 @@ public class SearchResult {
     private List<AttrVo> attrs;         //查询到的属性信息
 
     private List<NavVo> navs;       //面包屑导航栏
+
+    private List<Long> attrIds = new ArrayList<>();      //查询参数中包含的属性id，用于页面剔除属性筛选条件
 
     @Data
     public static class NavVo {

@@ -28,7 +28,7 @@ spring:
     type: redis
     redis:
       #自定义key的前缀
-#      key-prefix: cache_
+      key-prefix: cache_
       #是否启用key的前缀
       use-key-prefix: true
       #ttl时间，缓存过期时间，单位为毫秒

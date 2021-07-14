@@ -2,6 +2,7 @@ package com.dzy.gulimall.product.controller;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.dzy.common.valid.AddGroup;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -59,6 +61,12 @@ public class BrandController {
 		BrandEntity brand = brandService.getById(brandId);
 
         return R.ok().put("brand", brand);
+    }
+
+    @PostMapping("/list")
+    public R listByIds(@RequestParam("brandIds") List<Long> brandIds){
+        List<BrandEntity> brands =  brandService.getBrandsByIds(brandIds);
+        return R.ok().put("brands", brands);
     }
 
     /**

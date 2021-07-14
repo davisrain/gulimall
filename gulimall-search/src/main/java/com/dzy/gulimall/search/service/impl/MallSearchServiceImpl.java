@@ -9,6 +9,8 @@ import com.dzy.gulimall.search.constant.EsConstant;
 import com.dzy.gulimall.search.feign.ProductFeignService;
 import com.dzy.gulimall.search.service.MallSearchService;
 import com.dzy.gulimall.search.vo.AttrResponseVo;
+import com.dzy.gulimall.search.vo.BrandVo;
+import com.dzy.gulimall.search.vo.CategoryVo;
 import com.dzy.gulimall.search.vo.SearchParam;
 import com.dzy.gulimall.search.vo.SearchResult;
 import org.apache.lucene.search.join.ScoreMode;
@@ -237,11 +239,15 @@ public class MallSearchServiceImpl implements MallSearchService {
         }
         searchResult.setAttrs(attrVos);
         //4.设置面包屑导航栏的信息
+        //属性加入面包屑
         List<String> attrs = searchParam.getAttrs();
+        List<Long> attrIds = new ArrayList<>();
         if(attrs != null && attrs.size() > 0) {
             List<SearchResult.NavVo> navs = attrs.stream().map(attr -> {
                 SearchResult.NavVo navVo = new SearchResult.NavVo();
                 String[] s = attr.split("_");
+                //将请求过的属性id放入attrIds中，方便页面剔除属性筛选
+                attrIds.add(Long.parseLong(s[0]));
                 //设置属性名称,远程调用gulimall-product获取
                 R r = productFeignService.getAttrByAttrId(Long.parseLong(s[0]));
                 if (r.getCode() == 0) {
@@ -254,21 +260,70 @@ public class MallSearchServiceImpl implements MallSearchService {
                 //设置属性值
                 navVo.setAttrValue(s[1]);
                 //设置删除面包屑要跳转的链接
-                String queryString = searchParam.get_queryString();
-                String encodeAttr = null;
-                try {
-                    //需要将属性进行url编码才能与前端传来的值匹配，并且java的url编码会将空格转为+，而页面是转为%20，
-                    //因此空格需要特殊处理，将+替换为%20
-                    encodeAttr = URLEncoder.encode(attr, "UTF-8").replace("+", "%20");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                String url = queryString.replaceAll("&?attrs=" + encodeAttr, "");
+                String url = replaceQueryUrl(searchParam.get_queryString(), attr, "attrs");
                 navVo.setLink(StringUtils.hasText(url) ? "http://search.gulimall.com/list.html?" + url : "http://search.gulimall.com/list.html");
                 return navVo;
             }).collect(Collectors.toList());
             searchResult.setNavs(navs);
+            searchResult.setAttrIds(attrIds);
+        }
+        //品牌加入面包屑
+        List<Long> brandIds = searchParam.getBrandId();
+        if(brandIds != null && brandIds.size() > 0) {
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            //如果之前没有选择属性，导致navs没有被初始化，进行初始化
+            List<SearchResult.NavVo> navs = searchResult.getNavs();
+            if(navs == null)
+                navs = new ArrayList<>();
+            navVo.setAttrName("品牌");
+            //远程调用获取品牌的名字(也可以在es返回的结果中取得，品牌的聚合结果里面有)
+            String queryString  = searchParam.get_queryString();
+            R r = productFeignService.getBrandsByBrandIds(brandIds);
+            if(r.getCode() == 0) {
+                List<BrandVo> brands = r.getData("brands", new TypeReference<List<BrandVo>>() {});
+                StringBuilder sb = new StringBuilder();
+                for (BrandVo brand : brands) {
+                    sb.append(brand.getName()).append(";");
+                    queryString = replaceQueryUrl(queryString, String.valueOf(brand.getBrandId()), "brandId");
+                }
+                navVo.setAttrValue(sb.substring(0, sb.length() - 1));
+            }
+            navVo.setLink(StringUtils.hasText(queryString) ? "http://search.gulimall.com/list.html?" + queryString : "http://search.gulimall.com/list.html");
+            navs.add(navVo);
+            searchResult.setNavs(navs);
+        }
+        //分类加入面包屑
+        Long catalog3Id = searchParam.getCatalog3Id();
+        if (catalog3Id != null) {
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            List<SearchResult.NavVo> navs = searchResult.getNavs();
+            if (navs == null)
+                navs = new ArrayList<>();
+            navVo.setAttrName("分类");
+            //远程调用获取分类名称
+            R r = productFeignService.getCategoryByCatId(catalog3Id);
+            if (r.getCode() == 0) {
+                CategoryVo category = r.getData("category", new TypeReference<CategoryVo>() {
+                });
+                navVo.setAttrValue(category.getName());
+            }
+            String queryString = replaceQueryUrl(searchParam.get_queryString(), String.valueOf(catalog3Id), "catalog3Id");
+            navVo.setLink(StringUtils.hasText(queryString) ? "http://search.gulimall.com/list.html?" + queryString : "http://search.gulimall.com/list.html");
+            navs.add(navVo);
+            searchResult.setNavs(navs);
         }
         return searchResult;
+    }
+
+    private String replaceQueryUrl(String queryString, String value, String key) {
+        String encodeAttr = null;
+        try {
+            //需要将属性进行url编码才能与前端传来的值匹配，并且java的url编码会将空格转为+，而页面是转为%20，
+            //因此空格需要特殊处理，将+替换为%20
+            encodeAttr = URLEncoder.encode(value, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return queryString.replaceAll("&?" + key + "=" + encodeAttr, "");
     }
 }
