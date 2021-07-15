@@ -5,6 +5,7 @@ import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.product.entity.AttrGroupEntity;
 import com.dzy.gulimall.product.vo.AttrAttrgroupRelationVo;
 import com.dzy.gulimall.product.vo.AttrGroupWithAttrsVo;
+import com.dzy.gulimall.product.vo.SpuBaseAttrGroupVo;
 
 import java.util.List;
 import java.util.Map;
@@ -25,5 +26,7 @@ public interface AttrGroupService extends IService<AttrGroupEntity> {
     void deleteAttrRelations(List<AttrAttrgroupRelationVo> relationVos);
 
     List<AttrGroupWithAttrsVo> getAttrGroupsWithAttrsByCatId(Long catelogId);
+
+    List<SpuBaseAttrGroupVo> getAttrGroupsWithAttrsBySpuId(Long spuId, Long catalogId);
 }
 

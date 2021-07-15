@@ -1,9 +1,13 @@
 
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.dzy.gulimall.product.dao.AttrGroupDao;
+import com.dzy.gulimall.product.dao.SkuSaleAttrValueDao;
 import com.dzy.gulimall.product.entity.BrandEntity;
 import com.dzy.gulimall.product.service.BrandService;
 import com.dzy.gulimall.product.vo.Attr;
+import com.dzy.gulimall.product.vo.SkuSaleAttrVo;
+import com.dzy.gulimall.product.vo.SpuBaseAttrGroupVo;
 import org.junit.jupiter.api.Test;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +18,7 @@ import org.springframework.data.redis.core.ValueOperations;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 @SpringBootTest(classes = {com.dzy.gulimall.product.GulimallProductMain.class})
 public class MyTest {
@@ -29,6 +34,23 @@ public class MyTest {
 
     @Autowired
     Attr attr;
+
+    @Autowired
+    AttrGroupDao attrGroupDao;
+
+    @Autowired
+    SkuSaleAttrValueDao skuSaleAttrValueDao;
+
+    @Test
+    public void testGetSkuSaleAttrsBySpuId() {
+        List<SkuSaleAttrVo> skuSaleAttrs = skuSaleAttrValueDao.getSkuSaleAttrsBySpuId(6L);
+        System.out.println(skuSaleAttrs);
+    }
+    @Test
+    public void testGetAttrGroupsWithAttrsBySpuId() {
+        List<SpuBaseAttrGroupVo> attrGroups = attrGroupDao.getAttrGroupsWithAttrsBySpuId(6L, 225L);
+        System.out.println(attrGroups);
+    }
 
     @Test
     public void testImport() {
