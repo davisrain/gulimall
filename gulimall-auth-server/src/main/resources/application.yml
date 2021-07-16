@@ -1,4 +1,5 @@
-
+server:
+  port: 20000
 spring:
   application:
     name: gulimall-auth-server
@@ -8,5 +9,6 @@ spring:
         server-addr: 127.0.0.1:8848
   thymeleaf:
     cache: false
-server:
-  port: 20000
+  redis:
+    host: 47.104.204.228
+    port: 6379

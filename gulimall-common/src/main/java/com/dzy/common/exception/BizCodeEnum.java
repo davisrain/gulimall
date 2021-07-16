@@ -3,6 +3,7 @@ package com.dzy.common.exception;
 public enum BizCodeEnum {
     UNKNOWN_EXCEPTION(10000, "系统未知异常"),
     VALID_EXCEPTION(10001, "数据校验出现问题"),
+    SMS_SENDCODE_EXCEPTION(10002, "验证码发送太过频繁，请稍后再试"),
     PRODUCT_UP_EXCEPTION(11000, "商品上架异常");
     private int code;
     private String msg;
