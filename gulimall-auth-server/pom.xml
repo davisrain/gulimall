@@ -9,7 +9,7 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>gulimall-thirdparty</artifactId>
+    <artifactId>gulimall-auth-server</artifactId>
     <dependencies>
         <dependency>
             <groupId>com.dzy.gulimall</groupId>
@@ -23,13 +23,12 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>aliyun-oss-spring-boot-starter</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
-            <optional>true</optional>
+            <artifactId>spring-boot-devtools</artifactId>
         </dependency>
     </dependencies>
 
