@@ -52,3 +52,8 @@ logging:
     com.dzy.gulimall: debug
 
 
+my-thread-pool:
+  config:
+    core-pool-size: 20
+    max-pool-size: 500
+    keep-alive-time: 10

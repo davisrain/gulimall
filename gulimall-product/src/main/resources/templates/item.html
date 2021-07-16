@@ -595,8 +595,8 @@
 							<div class="box-attr clear" th:each="skuSaleAttr : ${skuItem.skuSaleAttrs}">
 								<dl>
 									<dt th:text="${skuSaleAttr.attrName}">选择颜色</dt>
-									<dd th:each="attrValue : ${#strings.listSplit(skuSaleAttr.attrValues, ',')}">
-										<a href="/static/item/#" th:text="${attrValue}">
+									<dd th:each="attrValue : ${skuSaleAttr.attrValues}">
+										<a th:attr="skuIds=${attrValue.skuIds},class=${#strings.contains(attrValue.skuIds, skuItem.skuInfo.skuId) ? 'sale-attr checked' : 'sale-attr'}" th:text="${attrValue.attrValue}" >
 											摩卡金
 										</a>
 									</dd>
@@ -1235,7 +1235,28 @@
 
 	<script src="/static/item/js/jquery1.9.js" type="text/javascript" charset="utf-8"></script>
 	<script src="/static/item/js/js.js" type="text/javascript" charset="utf-8"></script>
-	<script type="text/javascript">
-	</script>
+	<script type="text/javascript"></script>
+<script>
+    $(function() {
+        $(".sale-attr").parent().css({"border": "solid 1px rgb(204,204,204)"});
+        $(".sale-attr.checked").parent().css({"border": "solid 1px red"});
+    });
+    $(".sale-attr").click(function() {
+        let skuIds = new Array();
+        $(this).parent().siblings().each(function() {
+            $(this).children("a.sale-attr").removeClass("checked");
+        });
+        $(this).addClass("checked");
+        $(".sale-attr.checked").each(function() {
+            skuIds.push($(this).attr("skuIds").split(","));
+        });
+        console.log(skuIds);
+        let filterElement = skuIds[0];
+        for(let i = 1; i < skuIds.length; i++) {
+            filterElement = $(filterElement).filter(skuIds[i]);
+        }
+        location.href = "http://item.gulimall.com/" + filterElement[0] + ".html";
 
+    })
+</script>
 </html>
