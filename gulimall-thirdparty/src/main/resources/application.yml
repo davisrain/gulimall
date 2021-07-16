@@ -5,17 +5,5 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
-alibaba:
-  cloud:
-    access-key: LTAI5tAHm16tG7dJMt9foEqs
-    secret-key: RYxDl2IZ8TcUOxJZAmSXe6e3JFuXj5
-    oss:
-      endpoint: oss-cn-beijing.aliyuncs.com
-      bucket: gulimall-zhengyudai
-    sms:
-      host: https://gyytz.market.alicloudapi.com
-      path: /sms/smsSend
-      app-code: 04c6d255b5ce4e72a0f14980672c1fdf
-      sms-sign-id: 2e65b1bb3d054466b82f0c9d125465e2
-      template-id: 908e94ccf08b4476ba6c876d13f084ad
+
 
