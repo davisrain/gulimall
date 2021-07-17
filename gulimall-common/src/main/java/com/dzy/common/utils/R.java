@@ -75,6 +75,10 @@ public class R extends HashMap<String, Object> {
 		return (Integer)get("code");
 	}
 
+	public String getMsg() {
+		return (String) get("msg");
+	}
+
 	public R setData(Object data) {
 	    put("data", data);
 	    return this;

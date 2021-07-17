@@ -3,9 +3,14 @@ package com.dzy.gulimall.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.dzy.common.exception.BizCodeEnum;
+import com.dzy.gulimall.member.exception.PhoneExistException;
+import com.dzy.gulimall.member.exception.UsernameExistException;
 import com.dzy.gulimall.member.feign.CouponFeignService;
+import com.dzy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,6 +99,18 @@ public class MemberController {
     public R delete(@RequestBody Long[] ids){
 		memberService.removeByIds(Arrays.asList(ids));
 
+        return R.ok();
+    }
+
+    @PostMapping("/register")
+    public R register(@RequestBody MemberRegisterVo memberRegisterVo) {
+        try {
+            memberService.register(memberRegisterVo);
+        } catch (UsernameExistException e) {
+            return R.error(BizCodeEnum.USER_EXIST_EXCEPTION);
+        } catch (PhoneExistException e) {
+            return R.error(BizCodeEnum.PHONE_EXIST_EXCEPTION);
+        }
         return R.ok();
     }
 

@@ -12,3 +12,6 @@ spring:
   redis:
     host: 47.104.204.228
     port: 6379
+ribbon:
+  read-timeout: 5000
+  connect-timeout: 5000
