@@ -7,6 +7,7 @@ import com.dzy.common.exception.BizCodeEnum;
 import com.dzy.gulimall.member.exception.PhoneExistException;
 import com.dzy.gulimall.member.exception.UsernameExistException;
 import com.dzy.gulimall.member.feign.CouponFeignService;
+import com.dzy.gulimall.member.vo.MemberLoginVo;
 import com.dzy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -112,6 +113,15 @@ public class MemberController {
             return R.error(BizCodeEnum.PHONE_EXIST_EXCEPTION);
         }
         return R.ok();
+    }
+
+    @PostMapping("/login")
+    public R login(@RequestBody MemberLoginVo memberLoginVo) {
+        MemberEntity member = memberService.login(memberLoginVo);
+        if(member != null)
+            return R.ok();
+        else
+            return R.error(BizCodeEnum.ACCOUNT_PASSWORD_INVALID_EXCEPTION);
     }
 
 }

@@ -4,6 +4,7 @@ import com.dzy.gulimall.member.entity.MemberLevelEntity;
 import com.dzy.gulimall.member.exception.PhoneExistException;
 import com.dzy.gulimall.member.exception.UsernameExistException;
 import com.dzy.gulimall.member.service.MemberLevelService;
+import com.dzy.gulimall.member.vo.MemberLoginVo;
 import com.dzy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -69,6 +70,22 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         if(count > 0) {
             throw new UsernameExistException();
         }
+    }
+
+    @Override
+    public MemberEntity login(MemberLoginVo memberLoginVo) {
+        String account = memberLoginVo.getAccount();
+        String password = memberLoginVo.getPassword();
+        MemberEntity member = baseMapper.selectOne(new QueryWrapper<MemberEntity>().eq("username", account).or().eq("mobile", account));
+        if(member != null)
+            return null;
+        String dbPassword = member.getPassword();
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        boolean matches = passwordEncoder.matches(password, dbPassword);
+        if(matches)
+            return member;
+        else
+            return null;
     }
 
 }

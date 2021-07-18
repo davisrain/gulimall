@@ -6,6 +6,7 @@ import com.dzy.common.utils.R;
 import com.dzy.gulimall.Feign.MemberFeignService;
 import com.dzy.gulimall.Feign.ThirdPartyFeignService;
 import com.dzy.gulimall.config.MyWebConfiguration;
+import com.dzy.gulimall.vo.UserLoginVo;
 import com.dzy.gulimall.vo.UserRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -52,6 +53,7 @@ public class LoginController {
 
     @Autowired
     MemberFeignService memberFeignService;
+
     @ResponseBody
     @GetMapping("/sms/sendcode")
     public R sendCode(@RequestParam("phone") String phone) {
@@ -118,6 +120,20 @@ public class LoginController {
             errors.put("code", "验证码错误");
             redirectAttributes.addFlashAttribute("errors", errors);
             return "redirect:http://auth.gulimall.com/register.html";
+        }
+    }
+
+    @PostMapping("/login")
+    public String login(UserLoginVo userLoginVo, RedirectAttributes redirectAttributes) {
+        //远程调用登录功能
+        R r = memberFeignService.login(userLoginVo);
+        if(r.getCode() == 0)
+            return "redirect:http://gulimall.com";
+        else {
+            Map<String, String> errors = new HashMap<>();
+            errors.put("msg", r.getMsg());
+            redirectAttributes.addFlashAttribute("errors", errors);
+            return "redirect:http://auth.guliamll.com/login.html";
         }
     }
 }
