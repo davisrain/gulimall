@@ -1,17 +1,22 @@
 package com.dzy.gulimall.controller;
 
+import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.constant.AuthServerConstant;
 import com.dzy.common.exception.BizCodeEnum;
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.Feign.MemberFeignService;
 import com.dzy.gulimall.Feign.ThirdPartyFeignService;
 import com.dzy.gulimall.config.MyWebConfiguration;
+import com.dzy.gulimall.to.WeiboAccessTokenTo;
 import com.dzy.gulimall.vo.UserLoginVo;
 import com.dzy.gulimall.vo.UserRegisterVo;
+import com.dzy.gulimall.vo.UserRespVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -19,6 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.validation.Valid;
@@ -53,6 +59,9 @@ public class LoginController {
 
     @Autowired
     MemberFeignService memberFeignService;
+
+    @Autowired
+    RestTemplate restTemplate;
 
     @ResponseBody
     @GetMapping("/sms/sendcode")
@@ -124,16 +133,42 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(UserLoginVo userLoginVo, RedirectAttributes redirectAttributes) {
+    public String login(@Valid UserLoginVo userLoginVo, RedirectAttributes redirectAttributes) {
         //远程调用登录功能
         R r = memberFeignService.login(userLoginVo);
         if(r.getCode() == 0)
+            //TODO 用户数据展示和存储
             return "redirect:http://gulimall.com";
         else {
             Map<String, String> errors = new HashMap<>();
             errors.put("msg", r.getMsg());
             redirectAttributes.addFlashAttribute("errors", errors);
-            return "redirect:http://auth.guliamll.com/login.html";
+            return "redirect:http://auth.gulimall.com/login.html";
+        }
+    }
+
+    @GetMapping("/oauth2/weibo/success")
+    public String weiboLogin(@RequestParam("code") String code, RedirectAttributes redirectAttributes) {
+        //1.根据code去获取accessToken
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("client_id", "YOUR_CLIENT_ID");
+        params.add("client_secret", "YOUR_CLIENT_SECRET");
+        params.add("grand_type", "authorization_code");
+        params.add("redirect_uri", "http://auth.gulimall.com/oauth2/weibo/success");
+        params.add("code", code);
+        WeiboAccessTokenTo weiboAccessTokenTo = restTemplate.postForObject("https://api.weibo.com/oauth2/access_tocken", params, WeiboAccessTokenTo.class);
+        //2.拿到accessToken去调用member远程服务的微博登录功能
+        R r = memberFeignService.login(weiboAccessTokenTo);
+        //3.根据返回的用户信息决定跳转页面
+        if(r.getCode() == 0) {
+            UserRespVo user = r.getData("data", new TypeReference<UserRespVo>() {});
+            //TODO 用户数据展示和存储
+            return "redirect:http://gulimall.com";
+        } else {
+            Map<String, String> errors = new HashMap<>();
+            errors.put("msg", r.getMsg());
+            redirectAttributes.addFlashAttribute("errors", errors);
+            return "redirect:http://auth.gulimall.com/login.html";
         }
     }
 }

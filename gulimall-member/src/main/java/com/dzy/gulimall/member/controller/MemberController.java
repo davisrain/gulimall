@@ -7,6 +7,7 @@ import com.dzy.common.exception.BizCodeEnum;
 import com.dzy.gulimall.member.exception.PhoneExistException;
 import com.dzy.gulimall.member.exception.UsernameExistException;
 import com.dzy.gulimall.member.feign.CouponFeignService;
+import com.dzy.gulimall.member.to.WeiboAccessTokenTo;
 import com.dzy.gulimall.member.vo.MemberLoginVo;
 import com.dzy.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.dzy.gulimall.member.entity.MemberEntity;
@@ -120,6 +122,15 @@ public class MemberController {
         MemberEntity member = memberService.login(memberLoginVo);
         if(member != null)
             return R.ok();
+        else
+            return R.error(BizCodeEnum.ACCOUNT_PASSWORD_INVALID_EXCEPTION);
+    }
+
+    @PostMapping("/weibo/login")
+    public R login(@RequestBody WeiboAccessTokenTo weiboAccessTokenTo) {
+        MemberEntity member = memberService.login(weiboAccessTokenTo);
+        if(member != null)
+            return R.ok().setData(member);
         else
             return R.error(BizCodeEnum.ACCOUNT_PASSWORD_INVALID_EXCEPTION);
     }

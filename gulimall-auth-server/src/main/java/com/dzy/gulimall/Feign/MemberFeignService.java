@@ -1,6 +1,7 @@
 package com.dzy.gulimall.Feign;
 
 import com.dzy.common.utils.R;
+import com.dzy.gulimall.to.WeiboAccessTokenTo;
 import com.dzy.gulimall.vo.UserLoginVo;
 import com.dzy.gulimall.vo.UserRegisterVo;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -15,4 +16,7 @@ public interface MemberFeignService {
 
     @PostMapping("/member/member/login")
     R login(@RequestBody UserLoginVo userLoginVo);
+
+    @PostMapping("/member/member/weibo/login")
+    R login(@RequestBody WeiboAccessTokenTo weiboAccessTokenTo);
 }
