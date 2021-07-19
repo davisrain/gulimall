@@ -35,6 +35,8 @@ spring:
       time-to-live: 3600000
       #开启缓存null数据
       cache-null-values: true
+  session:
+    store-type: redis
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml

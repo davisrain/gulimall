@@ -1,11 +1,12 @@
-package com.dzy.gulimall.vo;
+package com.dzy.common.vo;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
-public class UserRespVo {
+public class UserRespVo implements Serializable {
     /**
      * id
      */
