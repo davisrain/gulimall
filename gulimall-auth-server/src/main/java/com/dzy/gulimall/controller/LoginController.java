@@ -27,6 +27,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -133,12 +136,17 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid UserLoginVo userLoginVo, RedirectAttributes redirectAttributes) {
+    public String login(@Valid UserLoginVo userLoginVo, RedirectAttributes redirectAttributes,
+                        HttpSession session) {
         //远程调用登录功能
         R r = memberFeignService.login(userLoginVo);
-        if(r.getCode() == 0)
-            //TODO 用户数据展示和存储
+        if(r.getCode() == 0) {
+            UserRespVo user = r.getData("data", new TypeReference<UserRespVo>() {});
+            //TODO 1、将cookie的domian设置为父域，使得子域访问的时候也能携带对应的cookie，以便拿到sessionid获取session
+            //TODO 2、将session中的序列化方式替换为json，这样就不能每次都使用jdk来反序列化（jdk要求序列化和反序列化的对象要一致）
+            session.setAttribute("loginUser", user);
             return "redirect:http://gulimall.com";
+        }
         else {
             Map<String, String> errors = new HashMap<>();
             errors.put("msg", r.getMsg());
@@ -148,7 +156,8 @@ public class LoginController {
     }
 
     @GetMapping("/oauth2/weibo/success")
-    public String weiboLogin(@RequestParam("code") String code, RedirectAttributes redirectAttributes) {
+    public String weiboLogin(@RequestParam("code") String code, RedirectAttributes redirectAttributes,
+                             HttpSession session, HttpServletResponse servletResponse) {
         //1.根据code去获取accessToken
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
         params.add("client_id", "YOUR_CLIENT_ID");
@@ -162,7 +171,14 @@ public class LoginController {
         //3.根据返回的用户信息决定跳转页面
         if(r.getCode() == 0) {
             UserRespVo user = r.getData("data", new TypeReference<UserRespVo>() {});
-            //TODO 用户数据展示和存储
+            /**
+             *  服务器向浏览器发送cookie让其保存的逻辑如下，如果我们可以修改cookie的domain作用域为父域名，
+             *  那么就能在访问所有子域的时候带上该cookie
+             */
+//            Cookie cookie = new Cookie("JSESSIONID", "");
+//            cookie.setDomain("");
+//            servletResponse.addCookie(cookie);
+            session.setAttribute("loginUser", user);
             return "redirect:http://gulimall.com";
         } else {
             Map<String, String> errors = new HashMap<>();
