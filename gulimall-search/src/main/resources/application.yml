@@ -7,3 +7,8 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+  session:
+    store-type: redis
+  redis:
+    host: 47.104.204.228
+    port: 6379

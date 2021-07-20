@@ -38,10 +38,13 @@ public class LoginController {
      *  页面跳转可以使用SpringMVC提供的viewController进行配置，不用写跳转空方法了
      * @see MyWebConfiguration
      */
-//    @GetMapping({"login","/login.html"})
-//    public String loginPage() {
-//        return "login";
-//    }
+    @GetMapping({"login","/login.html"})
+    public String loginPage(HttpSession session) {
+        if(session.getAttribute(AuthServerConstant.LOGIN_USER) == null)
+            return "login";
+        else
+            return "redirect:http://gulimall.com";
+    }
 //
 //    @GetMapping({"register", "register.html"})
 //    public String registerPage(){
@@ -133,9 +136,9 @@ public class LoginController {
         R r = memberFeignService.login(userLoginVo);
         if(r.getCode() == 0) {
             UserRespVo user = r.getData("data", new TypeReference<UserRespVo>() {});
-            //TODO 1、将cookie的domian设置为父域，使得子域访问的时候也能携带对应的cookie，以便拿到sessionid获取session
+            //TODO 1、将cookie的domain设置为父域，使得子域访问的时候也能携带对应的cookie，以便拿到sessionid获取session
             //TODO 2、将session中的序列化方式替换为json，这样就不能每次都使用jdk来反序列化（jdk要求序列化和反序列化的对象要一致）
-            session.setAttribute("loginUser", user);
+            session.setAttribute(AuthServerConstant.LOGIN_USER, user);
             return "redirect:http://gulimall.com";
         }
         else {

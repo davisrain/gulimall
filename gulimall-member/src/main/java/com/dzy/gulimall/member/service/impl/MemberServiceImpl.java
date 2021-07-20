@@ -62,6 +62,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         MemberEntity member = new MemberEntity();
         member.setLevelId(defaultMemberLevel.getId());
         member.setUsername(memberRegisterVo.getUserName());
+        member.setNickname(memberRegisterVo.getUserName());
         member.setMobile(memberRegisterVo.getPhone());
         member.setPassword(encode);
         baseMapper.insert(member);
