@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -34,6 +35,16 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItem addToCart(Long skuId, Integer num) {
+        BoundHashOperations<String, Object, Object> redisOperations = getRedisOperations();
+        String cartItemJson = (String) redisOperations.get(skuId.toString());
+        if(StringUtils.hasText(cartItemJson)) {
+            //购物车里已经存在这个商品，修改数量
+            CartItem cartItem = JSON.parseObject(cartItemJson, CartItem.class);
+            cartItem.setCount(cartItem.getCount() + num);
+            redisOperations.put(skuId.toString(), JSON.toJSONString(cartItem));
+            return cartItem;
+        }
+        //购物车里面没有这个商品，新增
         CartItem cartItem = new CartItem();
         //因为两个两个远程调用可以异步进行，所以使用CompletableFuture来进行异步编排
         //1.根据skuId调用远程服务查询到sku的信息
@@ -61,7 +72,6 @@ public class CartServiceImpl implements CartService {
             e.printStackTrace();
         }
         //3.将cartItem的值保存到redis中
-        BoundHashOperations<String, Object, Object> redisOperations = getRedisOperations();
         redisOperations.put(String.valueOf(skuId), JSON.toJSONString(cartItem));
         return cartItem;
     }
