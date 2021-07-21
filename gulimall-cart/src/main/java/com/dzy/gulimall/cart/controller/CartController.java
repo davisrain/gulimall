@@ -2,14 +2,20 @@ package com.dzy.gulimall.cart.controller;
 
 
 import com.dzy.gulimall.cart.Interceptor.CartInterceptor;
+import com.dzy.gulimall.cart.service.CartService;
 import com.dzy.gulimall.cart.to.UserInfoTo;
+import com.dzy.gulimall.cart.vo.CartItem;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 public class CartController {
 
+    @Autowired
+    CartService cartService;
 
     /**
      *  浏览器有一个cookie：user-key，标识用户身份，一个月后过期
@@ -25,5 +31,12 @@ public class CartController {
         UserInfoTo userInfo = CartInterceptor.threadLocal.get();
         System.out.println(userInfo);
         return "cartList";
+    }
+
+    @GetMapping("/addtocart")
+    public String addToCart(@RequestParam("skuId") Long skuId, @RequestParam("num") Integer num, Model model) {
+        CartItem cartItem = cartService.addToCart(skuId, num);
+        model.addAttribute("cartItem", cartItem);
+        return "success";
     }
 }

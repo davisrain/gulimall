@@ -4,6 +4,7 @@ import com.dzy.common.constant.AuthServerConstant;
 import com.dzy.common.constant.CartConstant;
 import com.dzy.common.vo.UserRespVo;
 import com.dzy.gulimall.cart.to.UserInfoTo;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -35,7 +36,11 @@ public class CartInterceptor implements HandlerInterceptor {
                 }
             }
         }
-
+        //如果第一次进来，没有user-key,生成一个随机的uuid当作user-key
+        if(StringUtils.isEmpty(userInfo.getUserKey())) {
+            String uuid = UUID.randomUUID().toString();
+            userInfo.setUserKey(uuid);
+        }
         //将userInfo放入ThreadLocal中，方便同一线程的后续操作使用
         threadLocal.set(userInfo);
         return true;
@@ -45,8 +50,7 @@ public class CartInterceptor implements HandlerInterceptor {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
         UserInfoTo userInfoTo = threadLocal.get();
         if(!userInfoTo.getHasTempUser()) {
-            String uuid = UUID.randomUUID().toString();
-            Cookie cookie = new Cookie(CartConstant.TEMP_USER_COOKIE_NAME, uuid);
+            Cookie cookie = new Cookie(CartConstant.TEMP_USER_COOKIE_NAME, userInfoTo.getUserKey());
             cookie.setDomain("gulimall.com");
             cookie.setMaxAge(CartConstant.TEMP_USER_COOKIE_EXPIRES);
             response.addCookie(cookie);

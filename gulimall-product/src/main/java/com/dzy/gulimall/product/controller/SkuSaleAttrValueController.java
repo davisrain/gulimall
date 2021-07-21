@@ -1,9 +1,11 @@
 package com.dzy.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -86,4 +88,8 @@ public class SkuSaleAttrValueController {
         return R.ok();
     }
 
+    @GetMapping("/stringlist/{skuId}")
+    public List<String> getSkuSaleAttrValues(@PathVariable("skuId") Long skuId) {
+        return skuSaleAttrValueService.getSkuSaleAttrValueAsStringList(skuId);
+    }
 }

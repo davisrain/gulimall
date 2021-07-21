@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public class CartItem {
-    private Integer skuId;
+    private Long skuId;
     private Boolean check = true;
     private String title;
     private String image;
@@ -13,11 +13,11 @@ public class CartItem {
     private Integer count;
     private BigDecimal totalPrice;
 
-    public Integer getSkuId() {
+    public Long getSkuId() {
         return skuId;
     }
 
-    public void setSkuId(Integer skuId) {
+    public void setSkuId(Long skuId) {
         this.skuId = skuId;
     }
 

@@ -35,4 +35,9 @@ public class SkuSaleAttrValueServiceImpl extends ServiceImpl<SkuSaleAttrValueDao
         return baseMapper.getSkuSaleAttrsBySpuId(spuId);
     }
 
+    @Override
+    public List<String> getSkuSaleAttrValueAsStringList(Long skuId) {
+        return baseMapper.getSkuSaleAttrValueAsStringList(skuId);
+    }
+
 }
