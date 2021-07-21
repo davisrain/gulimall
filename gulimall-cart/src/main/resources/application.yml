@@ -1,5 +1,10 @@
 server:
-  port: 20000
+  port: 40000
 spring:
   application:
     name: gulimall-cart
+  redis:
+    host: 47.104.204.228
+    port: 6379
+  session:
+    store-type: redis
