@@ -6,6 +6,10 @@ spring:
     password: 123456
     url: jdbc:mysql://47.104.204.228:3306/gulimall_oms
     driver-class-name: com.mysql.cj.jdbc.Driver
+  rabbitmq:
+    host: 47.104.204.228
+    port: 5672
+    virtual-host: /
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
   global-config:
