@@ -14,6 +14,7 @@ import com.dzy.common.vo.UserRespVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -39,9 +40,14 @@ public class LoginController {
      * @see MyWebConfiguration
      */
     @GetMapping({"login","/login.html"})
-    public String loginPage(HttpSession session) {
-        if(session.getAttribute(AuthServerConstant.LOGIN_USER) == null)
+    public String loginPage(HttpSession session,
+                            Model model,
+                            @RequestParam(value = "redirect_url", required = false) String redirectUrl) {
+        if(session.getAttribute(AuthServerConstant.LOGIN_USER) == null) {
+            if(redirectUrl != null)
+                model.addAttribute("redirectUrl", redirectUrl);
             return "login";
+        }
         else
             return "redirect:http://gulimall.com";
     }
@@ -131,7 +137,7 @@ public class LoginController {
 
     @PostMapping("/login")
     public String login(@Valid UserLoginVo userLoginVo, RedirectAttributes redirectAttributes,
-                        HttpSession session) {
+                        HttpSession session, @RequestParam(value = "redirectUrl", required = false) String redirectUrl) {
         //远程调用登录功能
         R r = memberFeignService.login(userLoginVo);
         if(r.getCode() == 0) {
@@ -139,6 +145,8 @@ public class LoginController {
             //TODO 1、将cookie的domain设置为父域，使得子域访问的时候也能携带对应的cookie，以便拿到sessionid获取session
             //TODO 2、将session中的序列化方式替换为json，这样就不能每次都使用jdk来反序列化（jdk要求序列化和反序列化的对象要一致）
             session.setAttribute(AuthServerConstant.LOGIN_USER, user);
+            if(redirectUrl != null)
+                return "redirect:" + redirectUrl;
             return "redirect:http://gulimall.com";
         }
         else {

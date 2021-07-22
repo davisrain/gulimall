@@ -4,12 +4,14 @@ package com.dzy.gulimall.cart.controller;
 import com.dzy.gulimall.cart.Interceptor.CartInterceptor;
 import com.dzy.gulimall.cart.service.CartService;
 import com.dzy.gulimall.cart.to.UserInfoTo;
+import com.dzy.gulimall.cart.vo.Cart;
 import com.dzy.gulimall.cart.vo.CartItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 public class CartController {
@@ -28,15 +30,50 @@ public class CartController {
      */
     @GetMapping("/cartlist.html")
     public String cartListPage(Model model) {
-        UserInfoTo userInfo = CartInterceptor.threadLocal.get();
-        System.out.println(userInfo);
+        Cart cart = cartService.getCart();
+        model.addAttribute("cart", cart);
         return "cartList";
     }
 
+    /**
+     *  redirectAttributes
+     *         addFlashAttribute() 是将数据添加到session中，并且只能使用一次
+     *         addAttribute() 是将数据拼接在重定向的路径之后
+     */
     @GetMapping("/addtocart")
-    public String addToCart(@RequestParam("skuId") Long skuId, @RequestParam("num") Integer num, Model model) {
+    public String addToCart(@RequestParam("skuId") Long skuId,
+                            @RequestParam("num") Integer num, Model model,
+                            RedirectAttributes redirectAttributes) {
         CartItem cartItem = cartService.addToCart(skuId, num);
+        redirectAttributes.addAttribute("skuId", skuId);
+        return "redirect:http://cart.gulimall.com/addtocartsuccess";
+    }
+
+    @GetMapping("/addtocartsuccess")
+    public String addToCartSuccess(@RequestParam("skuId") Long skuId, Model model) {
+        CartItem cartItem = cartService.getCartItem(skuId);
         model.addAttribute("cartItem", cartItem);
         return "success";
+    }
+
+    @GetMapping("/checkItem")
+    public String checkCartItem(@RequestParam("skuId") Long skuId,
+                                @RequestParam("checked") Integer checked) {
+        cartService.checkCartItem(skuId, checked);
+        return "redirect:http://cart.gulimall.com/cartlist.html";
+    }
+
+    @GetMapping("/changeItemNum")
+    public String changeCartItemNum(@RequestParam("skuId") Long skuId,
+                                    @RequestParam("num") Integer num) {
+        cartService.changeCartItemNum(skuId, num);
+        return "redirect:http://cart.gulimall.com/cartlist.html";
+    }
+
+    @GetMapping("/deleteItem")
+    public String deleteCartItem(@RequestParam("skuId") Long skuId) {
+        cartService.deleteCartItem(skuId);
+        return "redirect:http://cart.gulimall.com/cartlist.html";
+
     }
 }
