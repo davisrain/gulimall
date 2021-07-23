@@ -10,6 +10,10 @@ spring:
     host: 47.104.204.228
     port: 5672
     virtual-host: /
+    publisher-confirm-type: correlated
+    template:
+      mandatory: true
+
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
   global-config:
