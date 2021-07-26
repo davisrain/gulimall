@@ -155,6 +155,15 @@ public class CartServiceImpl implements CartService {
         redisOps.delete(skuId.toString());
     }
 
+    @Override
+    public List<CartItem> getCurrentCartItems() {
+        UserInfoTo userInfo = CartInterceptor.threadLocal.get();
+        if(userInfo.getUserId() == null)
+            return null;
+        String cartKey = CartConstant.REDIS_CART_PREFIX + userInfo.getUserId();
+        return getCartItemsByCartKey(cartKey);
+    }
+
     private BoundHashOperations<String, Object, Object> getRedisOperations() {
         UserInfoTo userInfo = CartInterceptor.threadLocal.get();
         String key;

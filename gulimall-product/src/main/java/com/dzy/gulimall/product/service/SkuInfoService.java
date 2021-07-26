@@ -5,6 +5,7 @@ import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.product.entity.SkuInfoEntity;
 import com.dzy.gulimall.product.vo.SkuItemVo;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -24,5 +25,7 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
     List<SkuInfoEntity> getSkusBySpuId(Long spuId);
 
     SkuItemVo item(Long skuId);
+
+    BigDecimal getNewlyPriceBySkuId(Long skuId);
 }
 

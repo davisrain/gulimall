@@ -1,6 +1,7 @@
 package com.dzy.gulimall.order.config;
 
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.EnableRabbit;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -11,6 +12,7 @@ import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
 
+@EnableRabbit
 @Configuration
 public class MyRabbitConfiguration {
 

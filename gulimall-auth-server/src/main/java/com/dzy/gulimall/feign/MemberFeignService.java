@@ -1,4 +1,4 @@
-package com.dzy.gulimall.Feign;
+package com.dzy.gulimall.feign;
 
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.to.WeiboAccessTokenTo;

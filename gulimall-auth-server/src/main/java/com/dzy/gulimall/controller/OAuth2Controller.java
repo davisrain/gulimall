@@ -2,7 +2,7 @@ package com.dzy.gulimall.controller;
 
 import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.utils.R;
-import com.dzy.gulimall.Feign.MemberFeignService;
+import com.dzy.gulimall.feign.MemberFeignService;
 import com.dzy.gulimall.to.WeiboAccessTokenTo;
 import com.dzy.common.vo.UserRespVo;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,9 +1,12 @@
 package com.dzy.gulimall.ware.controller;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.dzy.gulimall.ware.vo.FareVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,6 +86,12 @@ public class WareInfoController {
 		wareInfoService.removeByIds(Arrays.asList(ids));
 
         return R.ok();
+    }
+
+    @GetMapping("/fare")
+    public R getFare(@RequestParam("addressId") Long addressId) {
+        FareVo fare = wareInfoService.getFare(addressId);
+        return R.ok().setData(fare);
     }
 
 }

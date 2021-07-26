@@ -19,4 +19,7 @@ public interface CartService {
     void changeCartItemNum(Long skuId, Integer num);
 
     void deleteCartItem(Long skuId);
+
+    List<CartItem> getCurrentCartItems();
+
 }
