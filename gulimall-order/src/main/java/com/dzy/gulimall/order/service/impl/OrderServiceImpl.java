@@ -2,6 +2,7 @@ package com.dzy.gulimall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
+import com.dzy.common.constant.OrderConstant;
 import com.dzy.common.utils.R;
 import com.dzy.common.vo.UserRespVo;
 import com.dzy.gulimall.order.feign.CartFeignService;
@@ -13,15 +14,20 @@ import com.dzy.gulimall.order.vo.MemberAddressVo;
 import com.dzy.gulimall.order.vo.OrderConfirmVo;
 import com.dzy.gulimall.order.vo.OrderItemHasStockVo;
 import com.dzy.gulimall.order.vo.OrderItemVo;
+import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
+import com.dzy.gulimall.order.vo.OrderSubmitVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -52,6 +58,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    StringRedisTemplate redisTemplate;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -109,8 +118,20 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         //3.用户的积分
         orderConfirm.setIntegration(user.getIntegration());
         //4.计算其他的属性
-        //TODO 5.防止重复下单
+        //TODO 5.防止重复下单,使用token进行接口幂等性验证
+        String token = UUID.randomUUID().toString().replace("-", "");
+        String key = OrderConstant.ORDER_TOKEN_PREFIX + user.getId();
+        //将token放入redis
+        redisTemplate.opsForValue().set(key, token, 30L, TimeUnit.SECONDS);
+        //将token传给前端
+        orderConfirm.setOrderToken(token);
         return orderConfirm;
+    }
+
+    @Override
+    public OrderSubmitResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
+        //下单：验令牌，创建订单，验价格，锁库存...
+        return null;
     }
 
 }

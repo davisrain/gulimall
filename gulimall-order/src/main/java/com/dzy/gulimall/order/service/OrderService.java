@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.order.entity.OrderEntity;
 import com.dzy.gulimall.order.vo.OrderConfirmVo;
+import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
+import com.dzy.gulimall.order.vo.OrderSubmitVo;
 
 import java.util.Map;
 
@@ -20,5 +22,6 @@ public interface OrderService extends IService<OrderEntity> {
 
     OrderConfirmVo confirmOrder();
 
+    OrderSubmitResponseVo submitOrder(OrderSubmitVo orderSubmitVo);
 }
 

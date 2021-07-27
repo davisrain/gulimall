@@ -15,6 +15,7 @@ public class OrderConfirmVo {
     private BigDecimal totalPrice;
     private BigDecimal payPrice;
     private Map<Long, Boolean> hasStockMap;
+    private String orderToken;
 
     public BigDecimal getTotalPrice() {
         totalPrice = new BigDecimal("0");
