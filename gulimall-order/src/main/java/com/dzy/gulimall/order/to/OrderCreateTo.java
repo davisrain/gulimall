@@ -11,6 +11,4 @@ import java.util.List;
 public class OrderCreateTo {
     private OrderEntity order;
     private List<OrderItemEntity> orderItems;
-    private BigDecimal fare;
-    private BigDecimal payPrice;
 }

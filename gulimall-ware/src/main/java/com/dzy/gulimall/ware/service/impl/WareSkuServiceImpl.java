@@ -3,8 +3,12 @@ package com.dzy.gulimall.ware.service.impl;
 import com.dzy.common.to.SkuHasStockTo;
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.ware.entity.PurchaseDetailEntity;
+import com.dzy.gulimall.ware.exception.NoStockException;
 import com.dzy.gulimall.ware.feign.ProductFeignService;
 import com.dzy.gulimall.ware.service.PurchaseDetailService;
+import com.dzy.gulimall.ware.to.LockOrderItemTo;
+import com.dzy.gulimall.ware.to.WareLockTo;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,6 +106,52 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
             skuHasStockTo.setHasStock(stock != null && stock > 0);
             return skuHasStockTo;
         }).collect(Collectors.toList());
+    }
+
+
+    /**
+     * 锁库存
+     */
+    @Transactional
+    @Override
+    public void lockStock(WareLockTo wareLockTo) {
+        List<LockOrderItemTo> lockOrderItems = wareLockTo.getLockOrderItems();
+        //1.根据skuId找到有库存的wareIds
+        List<HasStockWare> hasStockWares = lockOrderItems.stream().map(lockOrderItem -> {
+            HasStockWare hasStockWare = new HasStockWare();
+            hasStockWare.setSkuId(lockOrderItem.getSkuId());
+            hasStockWare.setLockNum(lockOrderItem.getCount());
+            List<Long> hasStockWareIds = baseMapper.listHasStockWareIdsBySkuId(hasStockWare.getSkuId());
+            hasStockWare.setHasStockWareIds(hasStockWareIds);
+            return hasStockWare;
+        }).collect(Collectors.toList());
+        for (HasStockWare hasStockWare : hasStockWares) {
+
+            //2.进行锁库存
+            Long skuId = hasStockWare.getSkuId();
+            List<Long> hasStockWareIds = hasStockWare.getHasStockWareIds();
+            if(hasStockWareIds == null || hasStockWareIds.size() == 0 ){
+                throw new NoStockException(skuId);
+            }
+            for (Long hasStockWareId : hasStockWareIds) {
+                Long count = baseMapper.lockStock(skuId, hasStockWareId, hasStockWare.getLockNum());
+                if(count == 1) {
+                    //锁成功了，直接跳出循环，锁下一个sku
+                    break;
+                }
+                //否则抛出异常，中断程序
+                throw new NoStockException(skuId);
+            }
+        }
+
+
+    }
+
+    @Data
+    class HasStockWare {
+        private Long skuId;
+        private Integer lockNum;
+        private List<Long> hasStockWareIds;
     }
 
 

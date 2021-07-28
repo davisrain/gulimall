@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import com.dzy.common.to.SkuHasStockTo;
+import com.dzy.common.exception.BizCodeEnum;
+import com.dzy.gulimall.ware.exception.NoStockException;
+import com.dzy.gulimall.ware.to.WareLockTo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -94,6 +96,19 @@ public class WareSkuController {
     @PostMapping("/hasStock")
     public R getHasStockBySkuIds(@RequestBody List<Long> skuIds) {
         return R.ok().setData(wareSkuService.getHasStockBySkuIds(skuIds));
+    }
+
+    /**
+     *  锁定库存
+     */
+    @PostMapping("/lock")
+    public R lockStock(@RequestBody WareLockTo wareLockTo) {
+        try {
+            wareSkuService.lockStock(wareLockTo);
+            return R.ok();
+        } catch (NoStockException e) {
+            return R.error(BizCodeEnum.NO_STOCK_EXCEPTION);
+        }
     }
 
 }
