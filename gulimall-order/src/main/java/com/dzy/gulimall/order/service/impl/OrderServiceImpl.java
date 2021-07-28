@@ -23,6 +23,7 @@ import com.dzy.gulimall.order.vo.OrderItemVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
 import com.dzy.gulimall.order.vo.SpuInfoVo;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -48,6 +49,7 @@ import com.dzy.common.utils.Query;
 import com.dzy.gulimall.order.dao.OrderDao;
 import com.dzy.gulimall.order.entity.OrderEntity;
 import com.dzy.gulimall.order.service.OrderService;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
@@ -139,7 +141,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirm;
     }
 
-    @Transactional
+    @Transactional      //本地事务，在分布式结构下不能回滚其他服务的事务
     @Override
     public OrderSubmitResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
         orderSubmitThreadLocal.set(orderSubmitVo);
@@ -301,6 +303,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         R r = productFeignService.getSpuInfoBySkuId(skuId);
         SpuInfoVo spuInfo = r.getData(new TypeReference<SpuInfoVo>() {});
         orderItem.setSpuId(spuInfo.getId());
+        orderItem.setCategoryId(spuInfo.getCatalogId());
         orderItem.setSpuBrand(spuInfo.getBrandId().toString());
         orderItem.setSpuName(spuInfo.getSpuName());
 //        orderItem.setSpuPic();
@@ -326,6 +329,37 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 .subtract(orderItem.getCouponAmount()).subtract(orderItem.getIntegrationAmount());
         orderItem.setRealAmount(realAmount);
         return orderItem;
+    }
+
+    /**
+     * 事务传播行为演示
+     */
+    @Transactional(propagation = Propagation.REQUIRED,timeout = 30)
+    public void a() {
+        b();    //b会加入a的事务，一旦a方法内出现异常，ab方法都会回滚，并且一旦b方法加入a方法的事务，
+                // 那它设置的事务属性都会同a方法一样。比如超时时间，b加入a之后，自己事务的2秒超时时间就失效。
+        c();    //c会另起一个事务运行，a方法内出现异常，执行过的c不会回滚
+        //但是，直接调用本类下的事务方法，事务传播不会起作用。因为@Transactional注解声明事务本质是使用代理来实现的。
+        //开启事务等逻辑都在代理对象的b方法中，因此直接调用本类的b方法不会有效果。
+
+        //解决方法：
+        //  不能将自己注入自己，可能会导致循环依赖的问题出现
+        //  1、引入aop的starter
+        //  2、在启动类上标注@EnableAspectJAutoProxy(exposeProxy = true)，开启AspectJ代理（使用CGLib实现动态代理，不需要代理类有实现接口），
+        //  默认的JDK动态代理需要被代理的类实现过接口。并且设置注解的属性exposeProxy = true，暴露代理对象。
+        //  3、在当前类中可以通过AopContext.currentProxy()方法获取到当前类的代理类。然后调用代理类中的b和c方法。
+        OrderServiceImpl orderService = (OrderServiceImpl) AopContext.currentProxy();
+        orderService.b();
+        orderService.c();
+    }
+
+    @Transactional(propagation = Propagation.REQUIRED, timeout = 2)
+    public void b() {
+
+    }
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void c() {
+
     }
 
 }
