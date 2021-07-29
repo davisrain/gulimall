@@ -23,3 +23,15 @@ mybatis-plus:
 logging:
   level:
     com.dzy.gulimall.ware: debug
+
+#seata:
+#  config:
+#    type: nacos
+#    nacos:
+#      server-addr: 127.0.0.1:8848
+#  registry:
+#    type: nacos
+#    nacos:
+#      server-addr: 127.0.0.1:8848
+#  tx-service-group: gulimall_group
+

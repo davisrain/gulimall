@@ -23,7 +23,7 @@ spring:
     listener:
       simple:
         acknowledge-mode: manual
-        prefetch: 1
+#        prefetch: 1
   session:
     store-type: redis
   redis:
@@ -43,3 +43,14 @@ my-thread-pool:
     max-pool-size: 500
     keep-alive-time: 10
     queue-capacity: 100000
+
+#seata:
+#  config:
+#    type: nacos
+#    nacos:
+#      server-addr: 127.0.0.1:8848
+#  registry:
+#    type: nacos
+#    nacos:
+#      server-addr: 127.0.0.1:8848
+#  tx-service-group: gulimall_group

@@ -23,6 +23,7 @@ import com.dzy.gulimall.order.vo.OrderItemVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
 import com.dzy.gulimall.order.vo.SpuInfoVo;
+
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -141,6 +142,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirm;
     }
 
+//    @GlobalTransactional 高并发场景下，不能使用seata的分布式事务，因为它是基于锁机制实现的。
     @Transactional      //本地事务，在分布式结构下不能回滚其他服务的事务
     @Override
     public OrderSubmitResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
