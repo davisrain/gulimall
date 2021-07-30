@@ -43,4 +43,23 @@ public class WareConstant {
             return message;
         }
     }
+
+    public enum StockLockStatusEnum {
+        LOCKED(1, "锁定"),UNLOCKED(2, "解锁"),DEDUCTED(3, "扣减");
+
+        private int code;
+        private String message;
+        StockLockStatusEnum(int code, String message) {
+            this.code = code;
+            this.message = message;
+        }
+
+        public int getCode() {
+            return code;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }

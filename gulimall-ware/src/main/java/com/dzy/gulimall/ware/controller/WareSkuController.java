@@ -108,6 +108,8 @@ public class WareSkuController {
             return R.ok();
         } catch (NoStockException e) {
             return R.error(BizCodeEnum.NO_STOCK_EXCEPTION);
+        } catch (Exception e) {
+            return R.error(BizCodeEnum.WARE_UNKNOWN_EXCEPTION);
         }
     }
 
