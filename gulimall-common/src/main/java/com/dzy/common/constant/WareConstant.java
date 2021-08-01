@@ -45,7 +45,7 @@ public class WareConstant {
     }
 
     public enum StockLockStatusEnum {
-        LOCKED(1, "锁定"),UNLOCKED(2, "解锁"),DEDUCTED(3, "扣减");
+        LOCKED(1, "已锁定"),UNLOCKED(2, "已解锁"),DEDUCTED(3, "已扣减");
 
         private int code;
         private String message;

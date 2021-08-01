@@ -76,8 +76,7 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
      *  3、库存锁定业务出现异常，导致订单业务也回滚，此时库存和订单、以及库存锁定任务单都没有数据，但是rabbitmq里面可能会有
      *      部分成功锁定库存的消息，此时接收到消息不需要解锁库存。
      */
-    @RabbitHandler
-    public void releaseStock(StockLockTo stockLockTo, Message message, Channel channel) throws IOException {
+    public void releaseStock(StockLockTo stockLockTo, Message message, Channel channel) throws Exception {
         StockLockDetailTo stockLockDetail = stockLockTo.getStockLockDetail();
         Long taskDetailId = stockLockDetail.getId();
         WareOrderTaskDetailEntity taskDetail = wareOrderTaskDetailService.getById(taskDetailId);
@@ -95,22 +94,32 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                 if(order == null
                         || order.getStatus() == OrderConstant.Status.CLOSED.getCode()
                         || order.getStatus() == OrderConstant.Status.INVALID.getCode()) {
-                    unlockStock(stockLockDetail.getSkuId(), stockLockDetail.getSkuNum(), stockLockDetail.getWareId());
+                    //需要taskDetail的状态的已锁定时，才需要进行解锁
+                    if(taskDetail.getLockStatus() == WareConstant.StockLockStatusEnum.LOCKED.getCode())
+                        unlockStock(stockLockDetail.getSkuId(), stockLockDetail.getSkuNum(), stockLockDetail.getWareId(), taskDetailId);
                 }
                 //手动确认MQ消息，防止消息丢失
-                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+//                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
             } else{
                 //远程调用失败，将消息拒绝并重新入队，让别的消费者可以收到这个消息
-                channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+//                channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+                throw new RuntimeException("远程调用失败");
             }
         } else {
             //数据库里没有对应的库存锁定任务单详情，说明库存锁定业务出现异常已经回滚，此时不用解锁库存
-            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+//            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         }
     }
 
-    private void unlockStock(Long skuId, Integer unlockNum, Long wareId) {
+
+    @Transactional
+    public void unlockStock(Long skuId, Integer unlockNum, Long wareId, Long taskDetailId) {
+        //解锁库存
         baseMapper.unlockStock(skuId, unlockNum, wareId);
+        //修改库存任务单详情的状态为已解锁
+        WareOrderTaskDetailEntity taskDetail = wareOrderTaskDetailService.getById(taskDetailId);
+        taskDetail.setLockStatus(WareConstant.StockLockStatusEnum.UNLOCKED.getCode());
+        wareOrderTaskDetailService.updateById(taskDetail);
     }
 
     @Override

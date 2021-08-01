@@ -184,6 +184,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                     //锁库存成功
                     orderSubmitResponse.setOrderEntity(orderCreate.getOrder());
                     orderSubmitResponse.setCode(0);
+                    int i = 10/0;
                 } else {
                     //锁库存失败
                     orderSubmitResponse.setCode(3);
