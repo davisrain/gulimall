@@ -1,5 +1,6 @@
 package com.dzy.gulimall.ware.listener;
 
+import com.dzy.common.to.mq.OrderTo;
 import com.dzy.common.to.mq.StockLockTo;
 import com.dzy.gulimall.ware.service.WareSkuService;
 import com.rabbitmq.client.Channel;
@@ -28,7 +29,17 @@ public class StockReleaseListener {
     @RabbitHandler
     public void releaseStock(StockLockTo stockLockTo, Message message, Channel channel) throws IOException {
         try {
-            wareSkuService.releaseStock(stockLockTo, message, channel);
+            wareSkuService.releaseStock(stockLockTo);
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+        } catch (Exception e) {
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);
+        }
+    }
+
+    @RabbitHandler
+    public void releaseStock(OrderTo orderTo, Message message, Channel channel) throws IOException {
+        try {
+            wareSkuService.releaseStock(orderTo);
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
         } catch (Exception e) {
             channel.basicReject(message.getMessageProperties().getDeliveryTag(), true);

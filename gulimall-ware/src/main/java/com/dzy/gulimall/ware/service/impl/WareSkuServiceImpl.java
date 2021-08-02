@@ -4,6 +4,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.constant.OrderConstant;
 import com.dzy.common.constant.WareConstant;
 import com.dzy.common.to.SkuHasStockTo;
+import com.dzy.common.to.mq.OrderTo;
 import com.dzy.common.to.mq.StockLockDetailTo;
 import com.dzy.common.to.mq.StockLockTo;
 import com.dzy.common.utils.R;
@@ -49,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service("wareSkuService")
-@RabbitListener(queues = "stock.release.stock.queue")
 public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> implements WareSkuService {
 
     @Autowired
@@ -76,7 +76,8 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
      *  3、库存锁定业务出现异常，导致订单业务也回滚，此时库存和订单、以及库存锁定任务单都没有数据，但是rabbitmq里面可能会有
      *      部分成功锁定库存的消息，此时接收到消息不需要解锁库存。
      */
-    public void releaseStock(StockLockTo stockLockTo, Message message, Channel channel) throws Exception {
+    @Transactional
+    public void releaseStock(StockLockTo stockLockTo) throws Exception {
         StockLockDetailTo stockLockDetail = stockLockTo.getStockLockDetail();
         Long taskDetailId = stockLockDetail.getId();
         WareOrderTaskDetailEntity taskDetail = wareOrderTaskDetailService.getById(taskDetailId);
@@ -111,9 +112,21 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         }
     }
 
-
+    @Override
     @Transactional
-    public void unlockStock(Long skuId, Integer unlockNum, Long wareId, Long taskDetailId) {
+    public void releaseStock(OrderTo orderTo) {
+        //根据order的订单号拿到任务单的数据
+        WareOrderTaskEntity orderTask = wareOrderTaskService.getOne(new QueryWrapper<WareOrderTaskEntity>()
+                .eq("order_sn", orderTo.getOrderSn()));
+        //根据orderTask的信息拿到任务单详情信息(需要库存状态是已锁定的才需要解锁，防止重复解锁)
+        List<WareOrderTaskDetailEntity> orderTaskDetails = wareOrderTaskDetailService.list(new QueryWrapper<WareOrderTaskDetailEntity>()
+                .eq("task_id", orderTask.getId()).eq("lock_status", 1));
+        for (WareOrderTaskDetailEntity orderTaskDetail : orderTaskDetails) {
+            unlockStock(orderTaskDetail.getSkuId(), orderTaskDetail.getSkuNum(), orderTaskDetail.getWareId(), orderTaskDetail.getId());
+        }
+    }
+
+    private void unlockStock(Long skuId, Integer unlockNum, Long wareId, Long taskDetailId) {
         //解锁库存
         baseMapper.unlockStock(skuId, unlockNum, wareId);
         //修改库存任务单详情的状态为已解锁

@@ -18,11 +18,11 @@ import java.util.Map;
 @Configuration
 public class MyMQConfiguration {
 
-    @RabbitListener(queues = "order.release.order.queue")
-    public void consumer(OrderEntity order, Channel channel, Message message) throws IOException {
-        System.out.println("收到订单信息，订单号为：" + order.getOrderSn());
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
-    }
+//    @RabbitListener(queues = "order.release.order.queue")
+//    public void consumer(OrderEntity order, Channel channel, Message message) throws IOException {
+//        System.out.println("收到订单信息，订单号为：" + order.getOrderSn());
+//        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+//    }
 
     @Bean
     public Exchange orderEventExchange() {

@@ -24,6 +24,7 @@ import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
 import com.dzy.gulimall.order.vo.SpuInfoVo;
 
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -79,6 +80,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     OrderItemService orderItemService;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -184,7 +188,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                     //锁库存成功
                     orderSubmitResponse.setOrderEntity(orderCreate.getOrder());
                     orderSubmitResponse.setCode(0);
-                    int i = 10/0;
+                    //给MQ发送订单创建成功的消息，延时一定时间后检查订单是否支付
+                    rabbitTemplate.convertAndSend("order-event-exchange", "order.delay.order", orderCreate.getOrder());
                 } else {
                     //锁库存失败
                     orderSubmitResponse.setCode(3);
@@ -200,6 +205,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     @Override
     public OrderEntity getOrderByOrderSn(String orderSn) {
        return getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+    }
+
+    @Override
+    public void closeOrder(OrderEntity order) {
+        OrderEntity dbOrder = getById(order.getId());
+        if(dbOrder != null && dbOrder.getStatus() == OrderConstant.Status.WAIT_PAY.getCode()) {
+            //关闭订单
+            dbOrder.setStatus(OrderConstant.Status.CLOSED.getCode());
+            updateById(dbOrder);
+            //关闭订单之后，向库存解锁队列发送一个消息，进行手动库存解锁
+            rabbitTemplate.convertAndSend("stock-event-exchange", "stock.release", dbOrder);
+        }
     }
 
     private void saveOrder(OrderCreateTo orderCreate) {

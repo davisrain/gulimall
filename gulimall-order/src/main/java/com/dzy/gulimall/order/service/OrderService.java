@@ -3,6 +3,7 @@ package com.dzy.gulimall.order.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.order.entity.OrderEntity;
+import com.dzy.gulimall.order.entity.OrderItemEntity;
 import com.dzy.gulimall.order.vo.OrderConfirmVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
@@ -25,5 +26,7 @@ public interface OrderService extends IService<OrderEntity> {
     OrderSubmitResponseVo submitOrder(OrderSubmitVo orderSubmitVo);
 
     OrderEntity getOrderByOrderSn(String orderSn);
+
+    void closeOrder(OrderEntity order);
 }
 

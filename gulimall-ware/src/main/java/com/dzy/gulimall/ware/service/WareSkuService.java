@@ -2,6 +2,7 @@ package com.dzy.gulimall.ware.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.dzy.common.to.SkuHasStockTo;
+import com.dzy.common.to.mq.OrderTo;
 import com.dzy.common.to.mq.StockLockTo;
 import com.dzy.common.utils.PageUtils;
 import com.dzy.gulimall.ware.entity.WareSkuEntity;
@@ -31,6 +32,8 @@ public interface WareSkuService extends IService<WareSkuEntity> {
 
     void lockStock(WareLockTo wareLockTo);
 
-    void releaseStock(StockLockTo stockLockTo, Message message, Channel channel) throws Exception;
+    void releaseStock(StockLockTo stockLockTo) throws Exception;
+
+    void releaseStock(OrderTo orderTo);
 }
 
