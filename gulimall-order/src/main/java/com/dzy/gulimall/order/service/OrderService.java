@@ -8,6 +8,7 @@ import com.dzy.gulimall.order.vo.OrderConfirmVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,5 +29,7 @@ public interface OrderService extends IService<OrderEntity> {
     OrderEntity getOrderByOrderSn(String orderSn);
 
     void closeOrder(OrderEntity order);
+
+    PageUtils pageOrderWithItemsByMemberId(Map<String, Object> params);
 }
 

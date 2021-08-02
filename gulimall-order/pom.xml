@@ -41,7 +41,13 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-aop</artifactId>
         </dependency>
-<!--        <dependency>-->
+        <dependency>
+            <groupId>com.alipay.sdk</groupId>
+            <artifactId>alipay-sdk-java</artifactId>
+            <version>4.16.1.ALL</version>
+        </dependency>
+
+        <!--        <dependency>-->
 <!--            <groupId>io.seata</groupId>-->
 <!--            <artifactId>seata-spring-boot-starter</artifactId>-->
 <!--            <version>1.4.1</version>-->
