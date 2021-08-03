@@ -34,6 +34,9 @@ public class AliPayTemplate {
     // 字符编码格式
     public String charset = "utf-8";
 
+    //自动收单时间
+    public String timeout = "30m";
+
     // 支付宝网关
     public String gatewayUrl = "https://openapi.alipaydev.com/gateway.do";
 
@@ -58,6 +61,7 @@ public class AliPayTemplate {
                 + "\"total_amount\":\""+ total_amount +"\","
                 + "\"subject\":\""+ subject +"\","
                 + "\"body\":\""+ body +"\","
+                + "\"timeout_express\":\""+ timeout +"\","
                 + "\"product_code\":\"FAST_INSTANT_TRADE_PAY\"}");
 
         //若想给BizContent增加其他可选请求参数，以增加自定义超时时间参数timeout_express来举例说明
