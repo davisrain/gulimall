@@ -1,18 +1,22 @@
 package com.dzy.gulimall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.alipay.api.internal.util.AlipaySignature;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.dzy.common.constant.OrderConstant;
 import com.dzy.common.to.mq.OrderTo;
 import com.dzy.common.utils.R;
 import com.dzy.common.vo.UserRespVo;
+import com.dzy.gulimall.order.config.AliPayTemplate;
 import com.dzy.gulimall.order.entity.OrderItemEntity;
+import com.dzy.gulimall.order.entity.PaymentInfoEntity;
 import com.dzy.gulimall.order.feign.CartFeignService;
 import com.dzy.gulimall.order.feign.MemberFeignService;
 import com.dzy.gulimall.order.feign.ProductFeignService;
 import com.dzy.gulimall.order.feign.WareFeignService;
 import com.dzy.gulimall.order.interceptor.LoginUserInterceptor;
 import com.dzy.gulimall.order.service.OrderItemService;
+import com.dzy.gulimall.order.service.PaymentInfoService;
 import com.dzy.gulimall.order.to.LockOrderItemTo;
 import com.dzy.gulimall.order.to.OrderCreateTo;
 import com.dzy.gulimall.order.to.WareLockTo;
@@ -23,6 +27,7 @@ import com.dzy.gulimall.order.vo.OrderItemHasStockVo;
 import com.dzy.gulimall.order.vo.OrderItemVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
+import com.dzy.gulimall.order.vo.PayAsyncVo;
 import com.dzy.gulimall.order.vo.SpuInfoVo;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -36,6 +41,8 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,6 +65,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 
 @Service("orderService")
@@ -84,7 +95,13 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     OrderItemService orderItemService;
 
     @Autowired
+    PaymentInfoService paymentInfoService;
+
+    @Autowired
     RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    AliPayTemplate aliPayTemplate;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -240,6 +257,63 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             order.setOrderItems(orderItems);
         });
         return new PageUtils(page);
+    }
+
+    /**
+     * 支付结果异步返回处理
+     */
+    @Override
+    @Transactional
+    public String orderPayed(PayAsyncVo payAsyncVo) {
+        try {
+            //1.验签
+            ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            HttpServletRequest request = requestAttributes.getRequest();
+            //获取支付宝POST过来反馈信息
+            Map<String, String> params = new HashMap<String, String>();
+            Map<String, String[]> requestParams = request.getParameterMap();
+            for (Iterator<String> iter = requestParams.keySet().iterator(); iter.hasNext(); ) {
+                String name = (String) iter.next();
+                String[] values = (String[]) requestParams.get(name);
+                String valueStr = "";
+                for (int i = 0; i < values.length; i++) {
+                    valueStr = (i == values.length - 1) ? valueStr + values[i]
+                            : valueStr + values[i] + ",";
+                }
+//            //乱码解决，这段代码在出现乱码时使用
+//            valueStr = new String(valueStr.getBytes("ISO-8859-1"), "utf-8");
+                params.put(name, valueStr);
+            }
+            boolean signVerified = AlipaySignature.rsaCheckV1(params,
+                    aliPayTemplate.getAlipay_public_key(), aliPayTemplate.getCharset(), aliPayTemplate.getSign_type()); //调用SDK验证签名
+            if(signVerified) {
+                System.out.println("验签成功...");
+                //2.保存支付信息
+                PaymentInfoEntity paymentInfo = new PaymentInfoEntity();
+                paymentInfo.setOrderSn(payAsyncVo.getOut_trade_no());
+                paymentInfo.setAlipayTradeNo(payAsyncVo.getTrade_no());
+                paymentInfo.setTotalAmount(new BigDecimal(payAsyncVo.getBuyer_pay_amount()));
+                paymentInfo.setSubject(payAsyncVo.getSubject());
+                paymentInfo.setPaymentStatus(payAsyncVo.getTrade_status());
+                paymentInfo.setCreateTime(payAsyncVo.getGmt_create());
+                paymentInfo.setCallbackTime(payAsyncVo.getNotify_time());
+                paymentInfoService.save(paymentInfo);
+                //3.更新订单状态
+                String tradeStatus = payAsyncVo.getTrade_status();
+                String orderSn = payAsyncVo.getOut_trade_no();
+                if ("TRADE_SUCCESS".equals(tradeStatus) || "TRADE_FINISHED".equals(tradeStatus)) {
+                    OrderEntity order = getOrderByOrderSn(orderSn);
+                    order.setStatus(OrderConstant.Status.WAIT_SEND.getCode());
+                    updateById(order);
+                    return "success";
+                }
+            }
+            System.out.println("验签失败...");
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "fail";
+        }
+        return "fail";
     }
 
     private void saveOrder(OrderCreateTo orderCreate) {

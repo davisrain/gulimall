@@ -23,7 +23,7 @@ public class AliPayTemplate {
     public String alipay_public_key = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgggbA6Vj7xk/2sLgNh/L24Ve6BcbSPtLs+Rt6wZcU/0s226NeRUwyIqttaQ4Uc7qzh3aTl/7IxWzY8MHfnPxpEcjD2kFQgU3pVrglTiQbrRn97hNA0uMFN3E1oDrCbjMnLYCSvDSuRduPISvx2hDvcfjJZfdXnHowiy35dUgUzsjpYiIhELOX1k3hRi06RRxOfuBRT/Stj9/qMgvKP/UU3uJsbgeM0XxRDV6PW91mUtzm7S5047eFbYjtn25IGOzBsmHYK3udO9N1vuYruQntPdG8vteHZmPCZ46uu7QzxnCejr7yFGbeq+LDDz3X93P9wQUzvkQf74DqqHtsrzTCQIDAQAB";
 
     // 服务器异步通知页面路径  需http://格式的完整路径，不能加?id=123这类自定义参数，必须外网可以正常访问
-    public String notify_url = "http://工程公网访问地址/alipay.trade.page.pay-JAVA-UTF-8/notify_url.jsp";
+    public String notify_url = "http://b1a8k.cdhttp.cn/payed/notify";
 
     // 页面跳转同步通知页面路径 需http://格式的完整路径，不能加?id=123这类自定义参数，必须外网可以正常访问
     public String return_url = "http://member.gulimall.com/orderList.html";

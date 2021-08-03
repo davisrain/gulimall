@@ -17,8 +17,10 @@ public class LoginUserInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         //将从ware服务远程调用的请求放行，不需要进行登录验证
         String requestURI = request.getRequestURI();
-        boolean match = new AntPathMatcher().match("/order/order/get/**", requestURI);
-        if(match)
+        AntPathMatcher antPathMatcher = new AntPathMatcher();
+        boolean match = antPathMatcher.match("/order/order/get/**", requestURI);
+        boolean match1 = antPathMatcher.match("/payed/notify", requestURI);
+        if(match || match1)
             return true;
         UserRespVo user = (UserRespVo) request.getSession().getAttribute(AuthServerConstant.LOGIN_USER);
         if(user != null) {
