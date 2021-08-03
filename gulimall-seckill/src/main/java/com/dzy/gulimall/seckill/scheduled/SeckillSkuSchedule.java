@@ -17,6 +17,7 @@ public class SeckillSkuSchedule {
     @Autowired
     SeckillService seckillService;
 
+    //TODO 幂等性问题
     @Scheduled(cron = "0 0 3 * * ?")
     public void uploadSeckillSkuLatest3Days() {
         //1.重复上架无须处理

@@ -42,7 +42,6 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Override
     public void uploadSeckillSkuLatest3Days() {
-        //TODO 幂等性问题，防止重复上架
         //1.远程查询最近三天的秒杀活动场次
         R r = couponFeignService.latest3DaysSession();
         if(r.getCode() == 0) {
