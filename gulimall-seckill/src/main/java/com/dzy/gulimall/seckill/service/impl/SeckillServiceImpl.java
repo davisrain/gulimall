@@ -19,6 +19,8 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -88,6 +90,42 @@ public class SeckillServiceImpl implements SeckillService {
                 ).collect(Collectors.toList());
                 return redisTos;
             }
+        }
+        return null;
+    }
+
+    /**
+     *  根据skuId查询参与秒杀的sku信息
+     */
+    @Override
+    public SeckillSkuRedisTo getSeckillSkuInfo(Long skuId) {
+        List<SeckillSkuRedisTo> skuRedisTos = new ArrayList<>();
+        //1.查询到所有带skuId的sku信息
+        BoundHashOperations<String, String, String> hashOps = redisTemplate.boundHashOps(SKUS_CACHE_PREFIX);
+        Set<String> keys = hashOps.keys();
+        if(keys != null && keys.size() > 0) {
+            String regExp = "\\d+_" + skuId;
+            for (String key : keys) {
+                if(key.matches(regExp)) {
+                    String value = hashOps.get(key);
+                    SeckillSkuRedisTo skuRedisTo = JSON.parseObject(value, SeckillSkuRedisTo.class);
+                    skuRedisTos.add(skuRedisTo);
+                }
+            }
+        }
+        //2.遍历sku集合，找到结束时间大于当前时间，且开始时间最早的sku信息，进行返回
+        long currentTime = new Date().getTime();
+        List<SeckillSkuRedisTo> sortedSkus = skuRedisTos.stream().filter(skuRedisTo -> skuRedisTo.getEndTime() > currentTime).
+                sorted(Comparator.comparingLong(SeckillSkuRedisTo::getStartTime)).collect(Collectors.toList());
+        if(sortedSkus.size() > 0) {
+            SeckillSkuRedisTo seckillSku = sortedSkus.get(0);
+            //3.判断当前是否处于秒杀时间中，如果不是，隐藏随机码
+            if(currentTime >= seckillSku.getStartTime()){
+                //ignore
+            } else {
+                seckillSku.setRandomCode(null);
+            }
+            return seckillSku;
         }
         return null;
     }

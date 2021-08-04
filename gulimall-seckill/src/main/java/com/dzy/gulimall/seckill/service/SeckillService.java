@@ -9,4 +9,5 @@ public interface SeckillService {
 
     List<SeckillSkuRedisTo> getCurrentSeckillSkus();
 
+    SeckillSkuRedisTo getSeckillSkuInfo(Long skuId);
 }

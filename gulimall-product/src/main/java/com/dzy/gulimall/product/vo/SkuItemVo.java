@@ -22,6 +22,8 @@ public class SkuItemVo {
     private List<SpuBaseAttrGroupVo> spuBaseAttrGroupVos;
     //6.是否有货
     private Boolean hasStock = true;
+    //7.查询sku的秒杀信息
+    private SeckillSkuInfoVo seckillSkuInfo;
 
 
 }

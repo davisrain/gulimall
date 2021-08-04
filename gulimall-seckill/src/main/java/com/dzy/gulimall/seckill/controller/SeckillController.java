@@ -5,6 +5,7 @@ import com.dzy.gulimall.seckill.service.SeckillService;
 import com.dzy.gulimall.seckill.to.SeckillSkuRedisTo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -19,5 +20,11 @@ public class SeckillController {
     public R getCurrentSeckillSkus() {
         List<SeckillSkuRedisTo> skus = seckillService.getCurrentSeckillSkus();
         return R.ok().setData(skus);
+    }
+
+    @GetMapping("/sku/seckill/{skuId}")
+    public R getSeckillSkuInfo(@PathVariable("skuId") Long skuId) {
+        SeckillSkuRedisTo skuRedisTo = seckillService.getSeckillSkuInfo(skuId);
+        return R.ok().setData(skuRedisTo);
     }
 }
