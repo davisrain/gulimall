@@ -587,7 +587,7 @@
             if(resp.code == 0 && resp.data.length > 0) {
                 resp.data.forEach(function (sku) {
                     let lihtml = `<li>
-                    <img style="width: 130px;height: 130px" src="${sku.skuInfoVo.skuDefaultImg}" alt="">
+                    <img style="width: 130px;height: 130px" onclick="location.href='http://item.gulimall.com/${sku.skuId}.html'" src="${sku.skuInfoVo.skuDefaultImg}" alt="">
                     <p>${sku.skuInfoVo.skuTitle}</p>
                     <span>${sku.seckillPrice}</span><s>${sku.skuInfoVo.price}</s>
                     </li>`;
