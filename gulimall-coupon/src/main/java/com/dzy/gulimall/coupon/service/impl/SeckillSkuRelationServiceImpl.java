@@ -18,11 +18,13 @@ public class SeckillSkuRelationServiceImpl extends ServiceImpl<SeckillSkuRelatio
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
+        QueryWrapper<SeckillSkuRelationEntity> queryWrapper = new QueryWrapper<>();
+        String sessionId = (String) params.get("promotionSessionId");
+        queryWrapper.eq("promotion_session_id", sessionId);
         IPage<SeckillSkuRelationEntity> page = this.page(
                 new Query<SeckillSkuRelationEntity>().getPage(params),
-                new QueryWrapper<SeckillSkuRelationEntity>()
+                queryWrapper
         );
-
         return new PageUtils(page);
     }
 

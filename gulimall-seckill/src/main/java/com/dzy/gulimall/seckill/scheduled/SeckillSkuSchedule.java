@@ -18,8 +18,9 @@ public class SeckillSkuSchedule {
     SeckillService seckillService;
 
     //TODO 幂等性问题
-    @Scheduled(cron = "0 0 3 * * ?")
+    @Scheduled(cron = "*/10 * * * * ?")
     public void uploadSeckillSkuLatest3Days() {
+        System.out.println("定时任务开始...");
         //1.重复上架无须处理
         seckillService.uploadSeckillSkuLatest3Days();
     }

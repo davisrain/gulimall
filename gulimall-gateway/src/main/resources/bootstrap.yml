@@ -35,6 +35,13 @@ spring:
           filters:
             - StripPrefix=1
 
+        - id: coupon_route
+          uri: lb://gulimall-coupon
+          predicates:
+            - Path=/api/coupon/**
+          filters:
+            - StripPrefix=1
+
         - id: ware_route
           uri: lb://gulimall-ware
           predicates:
