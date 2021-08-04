@@ -2,9 +2,13 @@ package com.dzy.gulimall.seckill.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.dzy.common.to.mq.SeckillOrderTo;
 import com.dzy.common.utils.R;
+import com.dzy.common.vo.UserRespVo;
 import com.dzy.gulimall.seckill.feign.CouponFeignService;
 import com.dzy.gulimall.seckill.feign.ProductFeignService;
+import com.dzy.gulimall.seckill.interceptor.LoginInterceptor;
 import com.dzy.gulimall.seckill.service.SeckillService;
 import com.dzy.gulimall.seckill.to.SeckillSkuRedisTo;
 import com.dzy.gulimall.seckill.vo.SeckillSessionWithSkus;
@@ -13,12 +17,15 @@ import com.dzy.gulimall.seckill.vo.SkuInfoVo;
 import org.redisson.api.RLock;
 import org.redisson.api.RSemaphore;
 import org.redisson.api.RedissonClient;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -39,6 +46,9 @@ public class SeckillServiceImpl implements SeckillService {
 
     @Autowired
     StringRedisTemplate redisTemplate;
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     @Autowired
     RedissonClient redissonClient;
@@ -128,6 +138,58 @@ public class SeckillServiceImpl implements SeckillService {
             return seckillSku;
         }
         return null;
+    }
+
+    /**
+     *  秒杀方法
+     */
+    @Override
+    public String seckill(String seckillId, Integer num, String code) {
+        //去缓存中查询对应的sku秒杀信息
+        BoundHashOperations<String, String, String> hashOps = redisTemplate.boundHashOps(SKUS_CACHE_PREFIX);
+        String seckillSkuJson = hashOps.get(seckillId);
+        //1.验证sku秒杀信息是否存在
+        if(StringUtils.isEmpty(seckillSkuJson))
+            return null;
+        //2.验证秒杀时间
+        SeckillSkuRedisTo seckillSku = JSON.parseObject(seckillSkuJson, SeckillSkuRedisTo.class);
+        Long startTime = seckillSku.getStartTime();
+        Long endTime = seckillSku.getEndTime();
+        long currentTime = new Date().getTime();
+        if(currentTime < startTime || currentTime > endTime)
+            return null;
+        //3.验证随机码
+        if(!code.equals(seckillSku.getRandomCode()))
+            return null;
+        //4.验证购买件数
+        if(num != seckillSku.getSeckillLimit().intValue())
+            return null;
+        //5.幂等性保证，去redis中占位，一旦占位之后，下次请求就不能通过 key 使用 userId_sessionId_skuId
+        UserRespVo user = LoginInterceptor.userThreadLocal.get();
+        Long userId = user.getId();
+        String key = userId + "_" + seckillId;
+        //给占位锁设置过期时间，时间就为秒杀活动结束的时间
+        Boolean newComing = redisTemplate.opsForValue().setIfAbsent(key, num.toString(), endTime - currentTime, TimeUnit.MILLISECONDS);
+        if(!newComing)
+            return null;
+        //6.获取信号量
+        RSemaphore semaphore = redissonClient.getSemaphore(STOCK_CACHE_PREFIX + code);
+        //不用timeout等待时间，如果获取失败，立即返回false
+        boolean permit = semaphore.tryAcquire(num);
+        if(!permit)
+            return null;
+        //7.创建订单号，给MQ发送消息
+        String orderSn = IdWorker.getTimeId();
+        //TODO 给MQ发送消息
+        SeckillOrderTo seckillOrder = new SeckillOrderTo();
+        seckillOrder.setOrderSn(orderSn);
+        seckillOrder.setPromotionSessionId(seckillSku.getPromotionSessionId());
+        seckillOrder.setSkuId(seckillSku.getSkuId());
+        seckillOrder.setSeckillPrice(seckillSku.getSeckillPrice());
+        seckillOrder.setNum(num);
+        seckillOrder.setMemberId(user.getId());
+        rabbitTemplate.convertAndSend("order-event-exchange", "order.seckill.order", seckillOrder);
+        return orderSn;
     }
 
 

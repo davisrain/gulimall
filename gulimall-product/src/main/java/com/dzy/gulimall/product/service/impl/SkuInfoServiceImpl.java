@@ -4,11 +4,13 @@ import com.alibaba.fastjson.TypeReference;
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.product.entity.SkuImagesEntity;
 import com.dzy.gulimall.product.entity.SpuInfoDescEntity;
+import com.dzy.gulimall.product.entity.SpuInfoEntity;
 import com.dzy.gulimall.product.feign.SeckillFeignService;
 import com.dzy.gulimall.product.service.AttrGroupService;
 import com.dzy.gulimall.product.service.SkuImagesService;
 import com.dzy.gulimall.product.service.SkuSaleAttrValueService;
 import com.dzy.gulimall.product.service.SpuInfoDescService;
+import com.dzy.gulimall.product.service.SpuInfoService;
 import com.dzy.gulimall.product.vo.SeckillSkuInfoVo;
 import com.dzy.gulimall.product.vo.SkuItemVo;
 import com.dzy.gulimall.product.vo.SkuSaleAttrVo;
@@ -18,13 +20,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -35,7 +34,6 @@ import com.dzy.common.utils.Query;
 import com.dzy.gulimall.product.dao.SkuInfoDao;
 import com.dzy.gulimall.product.entity.SkuInfoEntity;
 import com.dzy.gulimall.product.service.SkuInfoService;
-import org.springframework.util.NumberUtils;
 
 
 @Service("skuInfoService")
@@ -55,6 +53,9 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
 
     @Autowired
     SeckillFeignService seckillFeignService;
+
+    @Autowired
+    SpuInfoService spuInfoService;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -170,6 +171,14 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     public BigDecimal getNewlyPriceBySkuId(Long skuId) {
         SkuInfoEntity skuInfo = getById(skuId);
         return skuInfo.getPrice();
+    }
+
+    @Override
+    public SkuInfoEntity getSkuInfoWithSpuInfo(Long skuId) {
+        SkuInfoEntity skuInfo = getById(skuId);
+        SpuInfoEntity spuInfo = spuInfoService.getById(skuInfo.getSpuId());
+        skuInfo.setSpuInfo(spuInfo);
+        return skuInfo;
     }
 
 }

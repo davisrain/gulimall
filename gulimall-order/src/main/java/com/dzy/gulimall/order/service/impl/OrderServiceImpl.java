@@ -5,6 +5,7 @@ import com.alipay.api.internal.util.AlipaySignature;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.dzy.common.constant.OrderConstant;
 import com.dzy.common.to.mq.OrderTo;
+import com.dzy.common.to.mq.SeckillOrderTo;
 import com.dzy.common.utils.R;
 import com.dzy.common.vo.UserRespVo;
 import com.dzy.gulimall.order.config.AliPayTemplate;
@@ -28,6 +29,7 @@ import com.dzy.gulimall.order.vo.OrderItemVo;
 import com.dzy.gulimall.order.vo.OrderSubmitResponseVo;
 import com.dzy.gulimall.order.vo.OrderSubmitVo;
 import com.dzy.gulimall.order.vo.PayAsyncVo;
+import com.dzy.gulimall.order.vo.SkuInfoVo;
 import com.dzy.gulimall.order.vo.SpuInfoVo;
 
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -314,6 +316,47 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             return "fail";
         }
         return "fail";
+    }
+
+    /**
+     *  创建秒杀订单
+     */
+    @Override
+    @Transactional
+    public void createSeckillOrder(SeckillOrderTo seckillOrder) {
+        //1.构建订单信息
+        OrderEntity order = new OrderEntity();
+        order.setOrderSn(seckillOrder.getOrderSn());
+        order.setMemberId(seckillOrder.getMemberId());
+        order.setCreateTime(new Date());
+        order.setStatus(OrderConstant.Status.WAIT_PAY.getCode());
+        order.setDeleteStatus(OrderConstant.DeleteStatus.NOT_DELETE.getCode());
+        order.setPayAmount(seckillOrder.getSeckillPrice().multiply(new BigDecimal(String.valueOf(seckillOrder.getNum()))));
+        save(order);
+        //2.构建订单项信息
+        Long skuId = seckillOrder.getSkuId();
+        OrderItemEntity orderItem = new OrderItemEntity();
+        orderItem.setOrderSn(seckillOrder.getOrderSn());
+        //3.远程查询商品服务，设置sku和spu信息
+        R r = productFeignService.getSkuInfoWithSpuInfo(skuId);
+        if(r.getCode() == 0) {
+            SkuInfoVo skuInfo = r.getData(new TypeReference<SkuInfoVo>() {});
+            //设置spu信息
+            SpuInfoVo spuInfo = skuInfo.getSpuInfo();
+            orderItem.setSpuId(spuInfo.getId());
+            orderItem.setCategoryId(spuInfo.getCatalogId());
+            orderItem.setSpuBrand(spuInfo.getBrandId().toString());
+            orderItem.setSpuName(spuInfo.getSpuName());
+            //设置sku信息
+            orderItem.setSkuId(skuId);
+            orderItem.setSkuName(skuInfo.getSkuName());
+            orderItem.setSkuPic(skuInfo.getSkuDefaultImg());
+            orderItem.setSkuQuantity(seckillOrder.getNum());
+            orderItem.setSkuPrice(seckillOrder.getSeckillPrice());
+        }
+        orderItem.setRealAmount(seckillOrder.getSeckillPrice().multiply(new BigDecimal(String.valueOf(seckillOrder.getNum()))));
+        orderItemService.save(orderItem);
+        //TODO 4.锁定库存
     }
 
     private void saveOrder(OrderCreateTo orderCreate) {

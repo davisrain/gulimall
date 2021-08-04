@@ -81,7 +81,8 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
         StockLockDetailTo stockLockDetail = stockLockTo.getStockLockDetail();
         Long taskDetailId = stockLockDetail.getId();
         WareOrderTaskDetailEntity taskDetail = wareOrderTaskDetailService.getById(taskDetailId);
-        if(taskDetail != null) {
+        //需要taskDetail的状态的已锁定时，才需要进行解锁
+        if(taskDetail != null && taskDetail.getLockStatus() == WareConstant.StockLockStatusEnum.LOCKED.getCode()) {
             //数据库里有对应的库存锁定任务单详情数据，此时需要根据库存任务单拿到对应的订单号，
             // 查看订单状态(订单可能会没有)来决定是否解锁库存。
             Long taskId = stockLockTo.getTaskId();
@@ -95,9 +96,7 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                 if(order == null
                         || order.getStatus() == OrderConstant.Status.CLOSED.getCode()
                         || order.getStatus() == OrderConstant.Status.INVALID.getCode()) {
-                    //需要taskDetail的状态的已锁定时，才需要进行解锁
-                    if(taskDetail.getLockStatus() == WareConstant.StockLockStatusEnum.LOCKED.getCode())
-                        unlockStock(stockLockDetail.getSkuId(), stockLockDetail.getSkuNum(), stockLockDetail.getWareId(), taskDetailId);
+                    unlockStock(stockLockDetail.getSkuId(), stockLockDetail.getSkuNum(), stockLockDetail.getWareId(), taskDetailId);
                 }
                 //手动确认MQ消息，防止消息丢失
 //                channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);

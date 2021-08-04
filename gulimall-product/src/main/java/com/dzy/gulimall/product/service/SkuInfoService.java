@@ -27,5 +27,7 @@ public interface SkuInfoService extends IService<SkuInfoEntity> {
     SkuItemVo item(Long skuId);
 
     BigDecimal getNewlyPriceBySkuId(Long skuId);
+
+    SkuInfoEntity getSkuInfoWithSpuInfo(Long skuId);
 }
 

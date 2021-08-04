@@ -12,3 +12,7 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+  rabbitmq:
+    virtual-host: /
+    host: 47.104.204.228
+    port: 5672

@@ -33,6 +33,10 @@ public class SeckillController {
     public R seckill(@RequestParam("seckillId") String seckillId,
                      @RequestParam("num") Integer num,
                      @RequestParam("code") String code) {
-        return null;
+        long start = System.currentTimeMillis();
+        String orderSn = seckillService.seckill(seckillId, num, code);
+        long end = System.currentTimeMillis();
+        System.out.println("秒杀逻辑耗时" + (end-start) + "毫秒");
+        return R.ok().setData(orderSn);
     }
 }

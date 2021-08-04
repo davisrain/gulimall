@@ -1,5 +1,6 @@
 package com.dzy.gulimall.product.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -65,5 +66,8 @@ public class SkuInfoEntity implements Serializable {
 	 * 销量
 	 */
 	private Long saleCount;
+
+	@TableField(exist = false)
+	private SpuInfoEntity spuInfo;
 
 }
