@@ -19,7 +19,9 @@ import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -64,6 +66,30 @@ public class SeckillServiceImpl implements SeckillService {
         } finally {
             lock.unlock();
         }
+    }
+
+    /**
+     * 查询当前时间可以秒杀的商品
+     */
+    @Override
+    public List<SeckillSkuRedisTo> getCurrentSeckillSkus() {
+        //1.查询当前时间的秒杀场次
+        long currentTime = new Date().getTime();
+        Set<String> keys = redisTemplate.keys(SESSIONS_CACHE_PREFIX + "*");
+        for (String key : keys) {
+            String[] timeRange = key.replace(SESSIONS_CACHE_PREFIX, "").split("_");
+            if(currentTime >= Long.parseLong(timeRange[0]) && currentTime <= Long.parseLong(timeRange[1])) {
+                //2.查询该场次所包含的所有sku
+                List<String> skuKeys = redisTemplate.opsForList().range(key, 0, -1);
+                BoundHashOperations<String, String, String> hashOps = redisTemplate.boundHashOps(SKUS_CACHE_PREFIX);
+                List<String> skuValues = hashOps.multiGet(skuKeys);
+                List<SeckillSkuRedisTo> redisTos = skuValues.stream().map(skuValue ->
+                    JSON.parseObject(skuValue, SeckillSkuRedisTo.class)
+                ).collect(Collectors.toList());
+                return redisTos;
+            }
+        }
+        return null;
     }
 
 
