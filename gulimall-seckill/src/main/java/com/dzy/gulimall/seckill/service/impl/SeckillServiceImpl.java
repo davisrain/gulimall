@@ -142,6 +142,8 @@ public class SeckillServiceImpl implements SeckillService {
 
     /**
      *  秒杀方法
+     *  TODO 1.秒杀上架的时候，每个商品设置一个过期信息，并且需要锁定库存
+     *  TODO 2.秒杀后续的流程，简化了收货地址等信息，以及库存解锁和关闭订单等操作
      */
     @Override
     public String seckill(String seckillId, Integer num, String code) {

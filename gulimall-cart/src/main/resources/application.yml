@@ -8,9 +8,22 @@ spring:
     port: 6379
   session:
     store-type: redis
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        dashboard: 127.0.0.1:8080
+        port: 8719
 my-thread-pool:
   config:
     core-pool-size: 20
     max-pool-size: 500
     keep-alive-time: 10
     queue-capacity: 100000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'

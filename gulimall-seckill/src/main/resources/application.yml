@@ -12,7 +12,16 @@ spring:
     nacos:
       discovery:
         server-addr: 127.0.0.1:8848
+    sentinel:
+      transport:
+        port: 8719
+        dashboard: 127.0.0.1:8080
   rabbitmq:
     virtual-host: /
     host: 47.104.204.228
     port: 5672
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
