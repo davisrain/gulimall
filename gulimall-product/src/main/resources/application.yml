@@ -62,10 +62,12 @@ management:
     web:
       exposure:
         include: '*'
-
-
 my-thread-pool:
   config:
     core-pool-size: 20
     max-pool-size: 500
     keep-alive-time: 10
+
+feign:
+  sentinel:
+    enabled: true
