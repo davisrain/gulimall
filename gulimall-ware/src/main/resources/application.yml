@@ -31,6 +31,10 @@ mybatis-plus:
     db-config:
       id-type: auto
 
+feign:
+  sentinel:
+    enabled: true
+
 
 logging:
   level:

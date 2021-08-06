@@ -1,9 +1,10 @@
 package com.dzy.gulimall.product.feign;
 
-import com.alibaba.csp.sentinel.annotation.SentinelResource;
 import com.dzy.common.utils.R;
 import com.dzy.gulimall.product.feign.fallback.SeckillFeignServiceFallback;
 import org.springframework.cloud.openfeign.FeignClient;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Scope;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 

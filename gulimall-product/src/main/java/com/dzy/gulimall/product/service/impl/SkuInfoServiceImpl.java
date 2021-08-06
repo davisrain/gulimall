@@ -17,6 +17,7 @@ import com.dzy.gulimall.product.vo.SkuSaleAttrVo;
 import com.dzy.gulimall.product.vo.SpuBaseAttrGroupVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,6 +36,8 @@ import com.dzy.gulimall.product.dao.SkuInfoDao;
 import com.dzy.gulimall.product.entity.SkuInfoEntity;
 import com.dzy.gulimall.product.service.SkuInfoService;
 
+import javax.annotation.Resource;
+
 
 @Service("skuInfoService")
 public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> implements SkuInfoService {
@@ -51,7 +54,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     @Autowired
     SkuSaleAttrValueService skuSaleAttrValueService;
 
-    @Autowired
+    @Resource
     SeckillFeignService seckillFeignService;
 
     @Autowired
