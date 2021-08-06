@@ -18,6 +18,7 @@ public enum BizCodeEnum {
     UNKNOWN_EXCEPTION(10000, "系统未知异常"),
     VALID_EXCEPTION(10001, "数据校验出现问题"),
     SMS_SENDCODE_EXCEPTION(10002, "验证码发送太过频繁，请稍后再试"),
+    TOO_MANY_REQUESTS_EXCEPTION(10003, "请求数量过多"),
     PRODUCT_UP_EXCEPTION(11000, "商品上架异常"),
     USER_EXIST_EXCEPTION(15001, "用户已经存在"),
     PHONE_EXIST_EXCEPTION(15002, "手机号已经存在"),
