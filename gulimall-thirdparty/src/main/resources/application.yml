@@ -9,6 +9,15 @@ spring:
       transport:
         dashboard: 127.0.0.1:8080
         port: 8719
+  #sleuth+zipkin链路追踪
+  zipkin:
+    base-url: http://47.104.204.228:9411
+    discovery-client-enabled: false #关闭服务发现功能
+    sender:
+      type: web   #以http的方式发送数据
+  sleuth:
+    sampler:
+      probability: 1 #设置抽样采集率为100%，默认为0.1，即10%
 
 management:
   endpoints:

@@ -1,0 +1,13 @@
+{
+  "properties": [
+    {
+      "name": "spring.cloud.zipkin.discovery-client-enabled",
+      "type": "java.lang.String",
+      "description": "Description for spring.cloud.zipkin.discovery-client-enabled."
+    },
+    {
+      "name": "spring.cloud.zipkin.base-url",
+      "type": "java.lang.String",
+      "description": "Description for spring.cloud.zipkin.base-url."
+    }
+  ] }
